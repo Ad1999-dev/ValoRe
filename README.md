@@ -1,28 +1,111 @@
 # ValoRe
 
-## 1) Overview
-This github repository is associated to the project done for the course Machine Learning Systems Design 2025-2026 INFO9023-1 at Uliege, https://github.com/ThomasVrancken/info9023-mlops. ValoRe is a ML-powered real estate valuation platform. The goal is to build an end-to-end machine learning system that focus on the system design and its components rather than the complexity of the model itself.
+## Milestone 1 (Sprint 1–2) status
+**Goal:** set up a clean MLOps foundation with CI/CD and cloud-hosted data for online EDA and baseline training.
 
-## 2) Dataset
-- Dataset: `Housing.csv` ([Housing Price Dataset](https://www.kaggle.com/datasets/sukhmandeepsinghbrar/housing-price-dataset/data))
-- Type: Structured/tabular data
-- Target: house price
+Implemented / expected in Milestone 1:
+- GitFlow workflow (`main`, `develop`, `feature/*`)
+- CI/CD: Ruff + pre-commit + pytest + GitHub Actions on PRs to `develop` and `main`
+- Cloud data (online): dataset loaded into **BigQuery** for online EDA and training extraction
+- Storage: dataset can also be uploaded to **GCS** (raw CSV + future artifacts)
 
-## 3) Repository structure
+Key docs:
+- `docs/README.md` (documentation index)
+- `docs/run_instructions.md` (how to run cloud ingestion & checks)
+- `docs/gcp_config.md` (project resources: IAM / BigQuery / GCS)
+
+---
+
+## Overview
+This repository is associated with the group project for the course **Machine Learning Systems Design (INFO9023-1, 2025–2026)** at ULiège: https://github.com/ThomasVrancken/info9023-mlops
+
+ValoRe is a ML-powered real estate valuation platform. The goal is to build an end-to-end machine learning system that **focuses on system design and engineering components** (data pipelines, cloud infrastructure, CI/CD, reproducibility, deployment) rather than model complexity.
+
+---
+
+## Dataset
+- Dataset: `Housing.csv` (Kaggle: Housing Price Dataset)
+- Type: structured/tabular
+- Target: house price (exact column name confirmed in EDA)
+
+**Important:** the dataset is **not committed to Git**.  
+For Milestone 1, the dataset is stored and used **online** via:
+- **BigQuery table**: `valore-mlsd-project.valore.housing_raw`
+- (Optional) raw file in **GCS**: `gs://mlsd-valore-2026-0001/data/raw/Housing.csv`
+
+---
+
+## Quick start (Milestone 1)
+All commands below should be run from the repository root.
+
+### 1) Authenticate to Google Cloud
+```bash
+gcloud init
+gcloud config set project valore-mlsd-project
+gcloud auth application-default login
 ```
-VaLoRe
-├── src/                        # source code
+
+### 2) Load dataset into BigQuery (online source)
+
+Edit config values inside:
+
+* `src/scripts/load_housing_to_bigquery.py`
+
+Run:
+
+```bash
+python -m src.scripts.load_housing_to_bigquery
+```
+
+### 3) Verify online queries
+
+Edit config values (and confirm target column name) inside:
+
+* `src/scripts/check_bigquery_queries.py`
+
+Run:
+
+```bash
+python -m src.scripts.check_bigquery_queries
+```
+
+### Upload raw dataset to GCS
+
+Edit config values inside:
+
+* `src/scripts/gcs_setup_and_upload.py`
+
+Run:
+
+```bash
+python -m src.scripts.gcs_setup_and_upload
+```
+
+---
+
+## Repository structure
+
+```
+ValoRe
+├── src/                        # source code (cloud utilities + scripts)
 ├── tests/                      # pytest tests
-├── docs/                       # documentation
-└── notebooks/                  # notebooks
+├── docs/                       # documentation (dataset card, data dictionary, cloud setup, etc.)
+├── notebooks/                  # EDA notebooks
+└── slides/                     # milestone slides (must be committed for grading)
 ```
 
-## 4) How we work (GitFlow)
-- `main`: milestone-ready only
-- `develop`: integration branch
-- `feature/*`: development branches
+---
 
-## 5) Contributors
-- Antoine DECKERS
-- Hoang Linh BUI
-- Duy Vu DINH
+## How we work (GitFlow)
+
+* `main`: milestone-ready only (submission branch)
+* `develop`: integration branch
+* `feature/*`: development branches
+
+---
+
+## Contributors
+
+* Antoine DECKERS
+* Hoang Linh BUI
+* Duy Vu DINH
