@@ -206,7 +206,7 @@ def main():
     print("\nBaseline validation results:")
     print(baseline_df.to_string(index=False))
 
-    # XGBoost tunning
+    # XGBoost tuning
     rmse_scorer = make_scorer(rmse, greater_is_better=False)
     cv_inner = KFold(n_splits=args.cv_folds, shuffle=True, random_state=args.seed)
 
