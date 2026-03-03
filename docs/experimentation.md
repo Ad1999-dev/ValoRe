@@ -88,12 +88,3 @@ After retraining the model on train + validation data:
 | R²     | 0.9063 |
 
 The test performance indicates strong generalization capability.
-
----
-
-## 6. Reproducibility
-
-The experiment can be reproduced using:
-
-```bash
-python -m src.model --data bq://valore-mlsd-project.valore.housing_raw
