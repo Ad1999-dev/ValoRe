@@ -25,7 +25,6 @@ SQFT_TO_SQM = 0.092903
 def load_dataframe(data_arg: str, project_id: str | None = None) -> pd.DataFrame:
     """
     Load data from:
-      - local CSV path: data/Housing_cleaned.csv (or raw)
       - BigQuery table: bq://project.dataset.table  (SELECT * FROM table)
     """
     if data_arg.startswith("bq://"):
@@ -39,11 +38,7 @@ def load_dataframe(data_arg: str, project_id: str | None = None) -> pd.DataFrame
 
 def pre_process(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Pre-process the raw dataframe with steps from EDA (as close as possible).
-
-    Key differences vs your earlier version:
-      - date parsing without errors="coerce"
-      - basement_ratio computed directly without replace(0) / fillna(0)
+    Pre-process the raw dataframe with steps from EDA.
     """
     df = df.copy()
 
@@ -51,11 +46,11 @@ def pre_process(df: pd.DataFrame) -> pd.DataFrame:
     if "id" in df.columns:
         df = df.drop(columns=["id"])
 
-    # Parse date (raw can be "20140926T000000")
+    # Parse date 
     if "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"])
 
-    # Convert sqft columns -> sqm and rename
+    # Convert sqft columns to sqm and rename
     sqft_cols = [c for c in df.columns if "sqft" in c]
     if sqft_cols:
         df[sqft_cols] = df[sqft_cols] * SQFT_TO_SQM
@@ -65,11 +60,11 @@ def pre_process(df: pd.DataFrame) -> pd.DataFrame:
     if "zipcode" in df.columns:
         df = df.drop(columns=["zipcode"])
 
-    # basement_ratio (EDA-style: no special handling)
+    # Basement_ratio = sqm_basement / sqm_living
     if "sqm_basement" in df.columns and "sqm_living" in df.columns:
         df["basement_ratio"] = df["sqm_basement"] / df["sqm_living"]
 
-    # Drop sqm_basement and sqm_above if present
+    # Drop sqm_basement and sqm_above 
     drop_cols = [c for c in ["sqm_basement", "sqm_above"] if c in df.columns]
     if drop_cols:
         df = df.drop(columns=drop_cols)
@@ -133,7 +128,7 @@ def main():
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load raw (CSV or BigQuery) -> clean like EDA -> add date features
+    # Load raw (BigQuery) -> pre-process -> add date features
     df = load_dataframe(args.data, project_id=args.project_id)
     df = pre_process(df)
     df = add_date_features(df)
@@ -167,7 +162,7 @@ def main():
         "XGBoost": XGBRegressor(
             objective="reg:squarederror",
             n_estimators=500,
-            learning_rate=0.05,
+            learning_rate=0.2,
             max_depth=6,
             random_state=args.seed,
             n_jobs=-1,
@@ -187,7 +182,7 @@ def main():
     print("\nBaseline validation results:")
     print(baseline_df.to_string(index=False))
 
-    # Tune XGBoost on train only using CV (discrete grid)
+    # XGBoost tunning
     rmse_scorer = make_scorer(rmse, greater_is_better=False)
     cv_inner = KFold(n_splits=args.cv_folds, shuffle=True, random_state=args.seed)
 
@@ -247,7 +242,7 @@ def main():
     print(json.dumps(test_metrics, indent=2))
 
     # Save final model + metrics + params
-    joblib.dump(best_xgb, out_dir / "model.pkl")
+    joblib.dump(best_xgb, out_dir / "model.joblib")
 
     artifacts: Dict[str, Any] = {
         "data_path": args.data,
