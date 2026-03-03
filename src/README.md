@@ -3,12 +3,12 @@
 This folder contains all Python code for the ValoRe project.
 
 ## Structure
-- `cloud/`  
+- `cloud/`
   Reusable helpers for Google Cloud services:
   - `bigquery_io.py`: create dataset, load data, query to pandas DataFrame
   - `gcs_io.py`: create bucket, upload/download files (optional but useful)
 
-- `scripts/`  
+- `scripts/`
   Small runnable scripts (one job each), mainly for Milestone 1:
   - `gcs_setup_and_upload.py`: create bucket + upload raw CSV to GCS
   - `load_housing_to_bigquery.py`: load Housing.csv into BigQuery table

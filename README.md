@@ -28,7 +28,7 @@ ValoRe is a ML-powered real estate valuation platform. The goal is to build an e
 - Type: structured/tabular
 - Target: house price (exact column name confirmed in EDA)
 
-**Important:** the dataset is **not committed to Git**.  
+**Important:** the dataset is **not committed to Git**.
 For Milestone 1, the dataset is stored and used **online** via:
 - **BigQuery table**: `valore-mlsd-project.valore.housing_raw`
 - (Optional) raw file in **GCS**: `gs://mlsd-valore-2026-0001/data/raw/Housing.csv`

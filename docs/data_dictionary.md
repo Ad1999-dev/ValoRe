@@ -30,11 +30,11 @@ This document describes every column in the dataset.
 
 ## Target variable
 - Target column: price
-- Meaning: house sale price (currency not specified in the CSV)  
+- Meaning: house sale price (currency not specified in the CSV)
 - Any transformation used (e.g., log): None
 
 ## Feature groups
 - Numeric features: bedrooms, bathrooms, sqft_living, sqft_lot, floors, sqft_above, sqft_basement, yr_built, yr_renovated, lat, long, sqft_living15, sqft_lot15
 - Categorical features: zipcode, waterfront (binary), view, condition, grade (ordinal)
 - Derived features: None
-- 
+-

@@ -5,9 +5,9 @@ Support online EDA and baseline training using cloud-hosted data, with clean eng
 
 ## Components
 ### Data layer
-- **BigQuery**: primary online dataset table  
+- **BigQuery**: primary online dataset table
   - `PROJECT_ID.valore.housing_raw`
-- **GCS** (optional but recommended): raw dataset file + future artifacts  
+- **GCS** (optional but recommended): raw dataset file + future artifacts
   - `gs://BUCKET_NAME/data/raw/Housing.csv`
 
 ### Code layer
