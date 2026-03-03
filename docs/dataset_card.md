@@ -29,7 +29,7 @@ In ValoRe, we use it to build an end-to-end ML system that demonstrates MLOps pr
 | **sqft_living** | Continuous | Total squared foot of the interior living space. |
 | **sqft_lot** | Continuous | Total squared foot of the land lot. |
 | **floors** | Continuous | Number of floors in the house. |
-| **waterfront** | Binary | 1 if property has a waterfront view; 0 otherwise. |
+| **waterfront** | Binary | 1 if property has a waterfront view. |
 | **view** | Ordinal | Quality rating of the property view (0 to 4). |
 | **condition** | Ordinal | Overall condition rating of the house (1 to 5). |
 | **grade** | Ordinal | Construction quality/design grade (1 to 13). |
