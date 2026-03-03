@@ -10,11 +10,13 @@ This github repository is associated to the project done for the course Machine 
 
 ## 3) Repository structure
 ```
-VaLoRe
-├── src/                        # source code
-├── tests/                      # pytest tests
-├── docs/                       # documentation
-└── notebooks/                  # notebooks
+VaLoRe/
+├── .github/workflows/   # GitHub Actions CI workflow 
+├── src/                 # Main source code (cloud utilities, scripts, core logic)
+├── tests/               # Pytest unit tests for project functions
+├── docs/                # Technical documentation
+├── notebooks/           # Jupyter notebooks 
+├── slides/              # Presentation slides for milestones
 ```
 
 ## 4) How we work (GitFlow)
