@@ -1,23 +1,25 @@
 import argparse
 import json
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Any
 
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
-
-from sklearn.model_selection import train_test_split, KFold, GridSearchCV
-from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, make_scorer
-
-from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import (
+    make_scorer,
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score,
+)
+from sklearn.model_selection import GridSearchCV, KFold, train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 from xgboost import XGBRegressor
-
 
 SQFT_TO_SQM = 0.092903
 
@@ -31,6 +33,7 @@ def load_dataframe(data_arg: str, project_id: str | None = None) -> pd.DataFrame
         table_id = data_arg.replace("bq://", "", 1).strip()
         sql = f"SELECT * FROM `{table_id}`"
         from src.cloud.bigquery_io import query_to_dataframe
+
         return query_to_dataframe(sql, project_id=project_id)
 
     return pd.read_csv(data_arg)
@@ -46,7 +49,7 @@ def pre_process(df: pd.DataFrame) -> pd.DataFrame:
     if "id" in df.columns:
         df = df.drop(columns=["id"])
 
-    # Parse date 
+    # Parse date
     if "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"])
 
@@ -64,7 +67,7 @@ def pre_process(df: pd.DataFrame) -> pd.DataFrame:
     if "sqm_basement" in df.columns and "sqm_living" in df.columns:
         df["basement_ratio"] = df["sqm_basement"] / df["sqm_living"]
 
-    # Drop sqm_basement and sqm_above 
+    # Drop sqm_basement and sqm_above
     drop_cols = [c for c in ["sqm_basement", "sqm_above"] if c in df.columns]
     if drop_cols:
         df = df.drop(columns=drop_cols)
@@ -89,7 +92,7 @@ def rmse(y_true, y_pred) -> float:
     return float(np.sqrt(mean_squared_error(y_true, y_pred)))
 
 
-def evaluate_regression(model, X_eval, y_eval) -> Dict[str, float]:
+def evaluate_regression(model, X_eval, y_eval) -> dict[str, float]:
     pred = model.predict(X_eval)
     return {
         "mae": float(mean_absolute_error(y_eval, pred)),
@@ -98,7 +101,7 @@ def evaluate_regression(model, X_eval, y_eval) -> Dict[str, float]:
     }
 
 
-def build_preprocess(X: pd.DataFrame) -> Tuple[ColumnTransformer, list]:
+def build_preprocess(X: pd.DataFrame) -> tuple[ColumnTransformer, list]:
     num_cols = X.select_dtypes(include=[np.number]).columns.tolist()
     numeric_transformer = Pipeline(
         steps=[
@@ -115,13 +118,29 @@ def build_preprocess(X: pd.DataFrame) -> Tuple[ColumnTransformer, list]:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, required=True, help="Path to CSV or bq://project.dataset.table")
-    parser.add_argument("--project_id", type=str, default=None, help="GCP project id (optional)")
-    parser.add_argument("--target", type=str, default="price", help="Target column name")
-    parser.add_argument("--out_dir", type=str, default="models", help="Folder to save artifacts")
+    parser.add_argument(
+        "--data",
+        type=str,
+        required=True,
+        help="Path to CSV or bq://project.dataset.table",
+    )
+    parser.add_argument(
+        "--project_id", type=str, default=None, help="GCP project id (optional)"
+    )
+    parser.add_argument(
+        "--target", type=str, default="price", help="Target column name"
+    )
+    parser.add_argument(
+        "--out_dir", type=str, default="models", help="Folder to save artifacts"
+    )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--test_size", type=float, default=0.2)
-    parser.add_argument("--val_size_total", type=float, default=0.1, help="Validation fraction of total data")
+    parser.add_argument(
+        "--val_size_total",
+        type=float,
+        default=0.1,
+        help="Validation fraction of total data",
+    )
     parser.add_argument("--cv_folds", type=int, default=10)
     args = parser.parse_args()
 
@@ -134,7 +153,9 @@ def main():
     df = add_date_features(df)
 
     if args.target not in df.columns:
-        raise ValueError(f"Target '{args.target}' not found. Columns: {list(df.columns)}")
+        raise ValueError(
+            f"Target '{args.target}' not found. Columns: {list(df.columns)}"
+        )
 
     X = df.drop(columns=[args.target])
     y = df[args.target]
@@ -150,7 +171,10 @@ def main():
     # Split train vs val from trainval so that val is val_size_total of total
     val_fraction_of_trainval = args.val_size_total / (1.0 - args.test_size)
     X_train, X_val, y_train, y_val = train_test_split(
-        X_trainval, y_trainval, test_size=val_fraction_of_trainval, random_state=args.seed
+        X_trainval,
+        y_trainval,
+        test_size=val_fraction_of_trainval,
+        random_state=args.seed,
     )
 
     # Baselines (fit on train, evaluate on val)
@@ -222,7 +246,7 @@ def main():
     best_cv_rmse = float(-search.best_score_)
 
     best_params_clean = {
-        k: (float(v) if isinstance(v, (np.floating,)) else v)
+        k: (float(v) if isinstance(v, np.floating) else v)
         for k, v in best_params.items()
     }
 
@@ -244,7 +268,7 @@ def main():
     # Save final model + metrics + params
     joblib.dump(best_xgb, out_dir / "model.joblib")
 
-    artifacts: Dict[str, Any] = {
+    artifacts: dict[str, Any] = {
         "data_path": args.data,
         "project_id": args.project_id,
         "target": args.target,
@@ -262,8 +286,12 @@ def main():
         "test_metrics": test_metrics,
     }
 
-    (out_dir / "metrics.json").write_text(json.dumps(artifacts, indent=2), encoding="utf-8")
-    (out_dir / "best_params.json").write_text(json.dumps(best_params_clean, indent=2), encoding="utf-8")
+    (out_dir / "metrics.json").write_text(
+        json.dumps(artifacts, indent=2), encoding="utf-8"
+    )
+    (out_dir / "best_params.json").write_text(
+        json.dumps(best_params_clean, indent=2), encoding="utf-8"
+    )
 
 
 if __name__ == "__main__":
