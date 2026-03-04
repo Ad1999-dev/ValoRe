@@ -98,4 +98,3 @@ The experiment can be reproduced using:
 
 ```bash
 python -m src.model --data bq://valore-mlsd-project.valore.housing_raw
-
