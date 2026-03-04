@@ -4,4 +4,8 @@ pre-commit
 google-cloud-bigquery
 google-cloud-storage
 pandas
+numpy
+pandas
 db-dtypes
+jupyter
+seaborn

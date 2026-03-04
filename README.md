@@ -1,13 +1,13 @@
 # ValoRe
 
-## Milestone 1 (Sprint 1–2) status
+## Milestone 1 (Sprint 1–2) Status
 **Goal:** set up a clean MLOps foundation with CI/CD and cloud-hosted data for online EDA and baseline training.
 
 Implemented / expected in Milestone 1:
 - GitFlow workflow (`main`, `develop`, `feature/*`)
 - CI/CD: Ruff + pre-commit + pytest + GitHub Actions on PRs to `develop` and `main`
 - Cloud data (online): dataset loaded into **BigQuery** for online EDA and training extraction
-- Storage: dataset can also be uploaded to **GCS** (raw CSV + future artifacts)
+- Storage: dataset can also be uploaded to **GCS** (raw CSV + artifacts)
 
 Key docs:
 - `docs/README.md` (documentation index)
@@ -87,13 +87,13 @@ python -m src.scripts.gcs_setup_and_upload
 
 ```
 ValoRe
-├── src/                        # source code (cloud utilities + scripts)
+├── src/                        # source code
 ├── tests/                      # pytest tests
-├── docs/                       # documentation (dataset card, data dictionary, cloud setup, etc.)
+├── models/                     # saved models
+├── docs/                       # documentation
 ├── notebooks/                  # EDA notebooks
-└── slides/                     # milestone slides (must be committed for grading)
+└── slides/                     # milestone slides
 ```
-
 ---
 
 ## How we work (GitFlow)
