@@ -11,7 +11,7 @@ Implemented / expected in Milestone 1:
 
 Key docs:
 - `docs/README.md` (documentation index)
-- `docs/run_instructions.md` (how to run cloud ingestion & checks)
+- `docs/cloud_initialization.md` (how to run cloud ingestion & checks)
 - `docs/gcp_config.md` (project resources: IAM / BigQuery / GCS)
 
 ---

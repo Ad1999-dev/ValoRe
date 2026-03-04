@@ -18,6 +18,6 @@ In ValoRe, we use it to build an end-to-end ML system that demonstrates MLOps pr
 
 ## Data description (high level)
 - Data type: tabular / structured
-- Row count: 50,000
+- Row count: 21,613
 - Number of features: 21
-- Target variable: price
+- Target variable: `price`
