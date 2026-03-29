@@ -14,7 +14,17 @@ def create_bucket(project_id, bucket_name, location="europe-west1"):
         new_bucket = client.create_bucket(bucket, location=location)
         print(f"Bucket created: {new_bucket.name} ({new_bucket.location})")
     except Conflict:
-        print(f"Bucket already exists: {bucket_name}")
+        # A 409 Conflict can mean either that the bucket already exists and is
+        # accessible to this project, or that the name is taken by another
+        # project (or otherwise inaccessible). Check accessibility explicitly.
+        existing_bucket = client.lookup_bucket(bucket_name)
+        if existing_bucket is None:
+            raise RuntimeError(
+                f"Bucket name '{bucket_name}' is already in use or not accessible "
+                f"for project '{project_id}'. Choose a different bucket name or "
+                f"verify that you have access to the bucket."
+            )
+        print(f"Bucket already exists and is accessible: {existing_bucket.name} ({existing_bucket.location})")
 
 
 def upload_file(project_id, bucket_name, local_path, blob_path):
