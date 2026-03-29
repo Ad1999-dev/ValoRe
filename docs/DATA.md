@@ -1,8 +1,39 @@
-# Data Dictionary
+# DATA
 
-This document describes every column in the dataset.
+## 1. Dataset source
 
-## Column definitions
+We use the `Housing.csv` dataset from Kaggle.
+
+It is a tabular regression dataset where the goal is to predict house sale prices.
+
+The raw CSV is not stored in Git. For the project, we work with:
+- a BigQuery table for the main online dataset
+- an optional copy of the raw CSV in GCS
+
+## 2. Target
+
+Target column:
+
+`price`
+
+This is the value our model tries to predict.
+
+## 3. Features
+
+Feature types:
+- Numeric features: `bedrooms`, `bathrooms`, `sqft_living`, `sqft_lot`, `floors`, `sqft_above`, `sqft_basement`, `yr_built`, `yr_renovated`, `lat`, `long`, `sqft_living15`, `sqft_lot15`
+- Categorical features: `zipcode`, `waterfront` (binary), `view`, `condition`, `grade` (ordinal)
+- Derived features: None
+
+
+The dataset contains a mix of:
+- house size features
+- room counts
+- condition / quality style features
+- construction year and renovation year
+- location coordinates
+- nearby-house features
+
 
 | Column name | Type (raw) | Type (used) | Allowed values / format | Description |
 |------------|------------|-------------|--------------------------|-------------|
@@ -28,12 +59,8 @@ This document describes every column in the dataset.
 | **sqft_living15** | int64 | int | 399 to 6,210 | Living area of nearby homes (15-nearest reference). |
 | **sqft_lot15** | int64 | int | 651 to 871,200 | Lot size of nearby homes (15-nearest reference). |
 
-## Target variable
-- Target column: `price`
-- Meaning: house sale price (currency not specified in the CSV)
-- Any transformation used (e.g., log): None
 
-## Feature groups
-- Numeric features: `bedrooms`, `bathrooms`, `sqft_living`, `sqft_lot`, `floors`, `sqft_above`, `sqft_basement`, `yr_built`, `yr_renovated`, `lat`, `long`, `sqft_living15`, `sqft_lot15`
-- Categorical features: `zipcode`, `waterfront` (binary), `view`, `condition`, `grade` (ordinal)
-- Derived features: None
+## 4. Limitations
+- **Region:** Limited to King County, Washington State.
+- **Time:** Data represents a snapshot of the 2014-2015 market.
+- **Provenance:** Random real estate website data mixed.

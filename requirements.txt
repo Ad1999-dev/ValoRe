@@ -3,9 +3,12 @@ pytest
 pre-commit
 google-cloud-bigquery
 google-cloud-storage
+google-auth
+db-dtypes
 pandas
 numpy
-pandas
-db-dtypes
+scikit-learn
+xgboost
+joblib
 jupyter
 seaborn
