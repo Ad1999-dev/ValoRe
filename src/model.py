@@ -21,7 +21,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBRegressor
 
-SQFT_TO_SQM = 0.092903
+from src.features import add_date_features, pre_process
 
 
 def load_dataframe(data_arg: str, project_id: str | None = None) -> pd.DataFrame:
@@ -37,55 +37,6 @@ def load_dataframe(data_arg: str, project_id: str | None = None) -> pd.DataFrame
         return query_to_dataframe(sql, project_id=project_id)
 
     return pd.read_csv(data_arg)
-
-
-def pre_process(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Pre-process the raw dataframe with steps from EDA.
-    """
-    df = df.copy()
-
-    # Drop id
-    if "id" in df.columns:
-        df = df.drop(columns=["id"])
-
-    # Parse date
-    if "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"])
-
-    # Convert sqft columns to sqm and rename
-    sqft_cols = [c for c in df.columns if "sqft" in c]
-    if sqft_cols:
-        df[sqft_cols] = df[sqft_cols] * SQFT_TO_SQM
-        df = df.rename(columns={c: c.replace("sqft", "sqm") for c in sqft_cols})
-
-    # Drop zipcode
-    if "zipcode" in df.columns:
-        df = df.drop(columns=["zipcode"])
-
-    # Basement_ratio = sqm_basement / sqm_living
-    if "sqm_basement" in df.columns and "sqm_living" in df.columns:
-        df["basement_ratio"] = df["sqm_basement"] / df["sqm_living"]
-
-    # Drop sqm_basement and sqm_above
-    drop_cols = [c for c in ["sqm_basement", "sqm_above"] if c in df.columns]
-    if drop_cols:
-        df = df.drop(columns=drop_cols)
-
-    return df
-
-
-def add_date_features(df: pd.DataFrame) -> pd.DataFrame:
-    if "date" not in df.columns:
-        return df
-    dt = pd.to_datetime(df["date"], errors="coerce")
-    df = df.copy()
-    df["year"] = dt.dt.year
-    df["month"] = dt.dt.month
-    df["day"] = dt.dt.day
-    df["dayofweek"] = dt.dt.dayofweek
-    df = df.drop(columns=["date"])
-    return df
 
 
 def rmse(y_true, y_pred) -> float:
