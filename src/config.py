@@ -1,5 +1,5 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 # Main GCP settings
 PROJECT_ID = os.getenv("GCP_PROJECT_ID", "valore-mlsd-project")
