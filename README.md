@@ -8,7 +8,7 @@ ValoRe is a ML-powered real estate valuation platform. The goal is to build an e
 
 ## 2. Project status
 
-### 2.1. Milestone 1 (Sprint 1–2) Status
+### 2.1. Milestone 1 (Sprint 1–2)
 **Goal:** set up a clean MLOps foundation with CI/CD and cloud-hosted data for online EDA and baseline training.
 
 Implemented / expected in Milestone 1:
@@ -18,10 +18,10 @@ Implemented / expected in Milestone 1:
 - Storage: dataset can also be uploaded to **GCS** (raw CSV + artifacts)
 
 
-### 2.2. Milestone 2 (Sprint 3–4) Status
+### 2.2. Milestone 2 (Sprint 3–4)
 (TBD)
 
-### 2.3. Milestone 3 (Sprint 5–6) Status
+### 2.3. Milestone 3 (Sprint 5–6)
 (TBD)
 
 
