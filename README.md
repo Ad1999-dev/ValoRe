@@ -1,6 +1,14 @@
 # ValoRe
 
-## Milestone 1 (Sprint 1–2) Status
+## 1. Overview
+This repository is associated with the group project for the course **Machine Learning Systems Design (INFO9023-1, 2025–2026)** at ULiège: https://github.com/ThomasVrancken/info9023-mlops
+
+ValoRe is a ML-powered real estate valuation platform. The goal is to build an end-to-end machine learning system that **focuses on system design and engineering components** (data pipelines, cloud infrastructure, CI/CD, reproducibility, deployment) rather than model complexity.
+
+
+## 2. Project status
+
+### 2.1. Milestone 1 (Sprint 1–2)
 **Goal:** set up a clean MLOps foundation with CI/CD and cloud-hosted data for online EDA and baseline training.
 
 Implemented / expected in Milestone 1:
@@ -9,21 +17,16 @@ Implemented / expected in Milestone 1:
 - Cloud data (online): dataset loaded into **BigQuery** for online EDA and training extraction
 - Storage: dataset can also be uploaded to **GCS** (raw CSV + artifacts)
 
-Key docs:
-- `docs/README.md` (documentation index)
-- `docs/cloud_initialization.md` (how to run cloud ingestion & checks)
-- `docs/gcp_config.md` (project resources: IAM / BigQuery / GCS)
 
----
+### 2.2. Milestone 2 (Sprint 3–4)
+(TBD)
 
-## Overview
-This repository is associated with the group project for the course **Machine Learning Systems Design (INFO9023-1, 2025–2026)** at ULiège: https://github.com/ThomasVrancken/info9023-mlops
+### 2.3. Milestone 3 (Sprint 5–6)
+(TBD)
 
-ValoRe is a ML-powered real estate valuation platform. The goal is to build an end-to-end machine learning system that **focuses on system design and engineering components** (data pipelines, cloud infrastructure, CI/CD, reproducibility, deployment) rather than model complexity.
 
----
 
-## Dataset
+## 3. Dataset
 - Dataset: `Housing.csv` (Kaggle: Housing Price Dataset)
 - Type: structured/tabular
 - Target: house price (exact column name confirmed in EDA)
@@ -33,57 +36,8 @@ For Milestone 1, the dataset is stored and used **online** via:
 - **BigQuery table**: `valore-mlsd-project.valore.housing_raw`
 - (Optional) raw file in **GCS**: `gs://mlsd-valore-2026-0001/data/raw/Housing.csv`
 
----
 
-## Quick start (Milestone 1)
-All commands below should be run from the repository root.
-
-### 1) Authenticate to Google Cloud
-```bash
-gcloud init
-gcloud config set project valore-mlsd-project
-gcloud auth application-default login
-```
-
-### 2) Load dataset into BigQuery (online source)
-
-Edit config values inside:
-
-* `src/scripts/load_housing_to_bigquery.py`
-
-Run:
-
-```bash
-python -m src.scripts.load_housing_to_bigquery
-```
-
-### 3) Verify online queries
-
-Edit config values (and confirm target column name) inside:
-
-* `src/scripts/check_bigquery_queries.py`
-
-Run:
-
-```bash
-python -m src.scripts.check_bigquery_queries
-```
-
-### Upload raw dataset to GCS
-
-Edit config values inside:
-
-* `src/scripts/gcs_setup_and_upload.py`
-
-Run:
-
-```bash
-python -m src.scripts.gcs_setup_and_upload
-```
-
----
-
-## Repository structure
+## 4. Repository structure
 
 ```
 ValoRe
@@ -91,20 +45,19 @@ ValoRe
 ├── tests/                      # pytest tests
 ├── models/                     # saved models
 ├── docs/                       # documentation
-├── notebooks/                  # EDA notebooks
+├── notebooks/                  # notebooks
 └── slides/                     # milestone slides
 ```
----
 
-## How we work (GitFlow)
+
+## 5. How we work (GitFlow)
 
 * `main`: milestone-ready only (submission branch)
 * `develop`: integration branch
 * `feature/*`: development branches
 
----
 
-## Contributors
+## 6. Contributors
 
 * Antoine DECKERS
 * Hoang Linh BUI
