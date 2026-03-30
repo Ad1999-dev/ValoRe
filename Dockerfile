@@ -1,21 +1,26 @@
-FROM python:3.13-slim
-
+# Stage 1: Build dependencies
+FROM python:3.13-slim AS builder
 WORKDIR /app
 
-# Install UV from its official image
+# Install UV
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy dependency files first for better Docker caching
+# Install dependencies into a virtual environment
 COPY pyproject.toml uv.lock ./
-
-# Install only runtime dependencies inside the container
 RUN uv sync --frozen --no-dev --no-install-project
+
+# Stage 2: Runtime
+FROM python:3.13-slim
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
 
 # Copy application code
 COPY src ./src
 COPY models ./models
 
-# Make the UV virtual environment available
+# Use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app"
 
