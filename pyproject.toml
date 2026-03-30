@@ -1,0 +1,29 @@
+[project]
+name = "valore"
+version = "0.1.0"
+description = "ValoRe house price prediction project for ML Systems Design"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "db-dtypes",
+    "flask==3.1.0",
+    "google-auth",
+    "google-cloud-bigquery",
+    "google-cloud-bigquery-storage",
+    "google-cloud-storage",
+    "gunicorn==23.0.0",
+    "joblib",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "xgboost",
+]
+
+[dependency-groups]
+dev = [
+    "jupyter",
+    "pre-commit",
+    "pytest",
+    "ruff",
+    "seaborn",
+]
