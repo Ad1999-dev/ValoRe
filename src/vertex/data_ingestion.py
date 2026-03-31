@@ -15,12 +15,12 @@ def data_ingestion(
     client = bigquery.Client(project=bq_project)
 
     extract_job = client.extract_table(
-        "{}.{}.{}".format(bq_project, bq_dataset, bq_table),
-        destination_uris=["{}/*.parquet".format(dataset.uri)],
+        f"{bq_project}.{bq_dataset}.{bq_table}",
+        destination_uris=[f"{dataset.uri}/*.parquet"],
         job_config=bigquery.ExtractJobConfig(
             destination_format=bigquery.DestinationFormat.PARQUET
         ),
     )
 
     extract_job.result()
-    print("Exported raw table to {}".format(dataset.uri))
+    print(f"Exported raw table to {dataset.uri}")

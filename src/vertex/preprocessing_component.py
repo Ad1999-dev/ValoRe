@@ -18,7 +18,7 @@ def preprocessing_component(
     parquet_files = glob.glob(os.path.join(input_dataset.path, "*.parquet"))
 
     if not parquet_files:
-        raise ValueError("No parquet files found in {}".format(input_dataset.path))
+        raise ValueError(f"No parquet files found in {input_dataset.path}")
 
     frames = []
     for file_path in parquet_files:
@@ -31,4 +31,4 @@ def preprocessing_component(
     output_path = os.path.join(processed_dataset.path, "data.parquet")
     df.to_parquet(output_path, index=False)
 
-    print("Saved processed data to {}".format(output_path))
+    print(f"Saved processed data to {output_path}")

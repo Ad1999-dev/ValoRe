@@ -10,9 +10,9 @@ def evaluation_component(
     metrics: Output[Metrics],
     target_col: str = "price",
 ):
-    import joblib
     import os
 
+    import joblib
     import pandas as pd
 
     from src.modeling.evaluation import evaluate_regression
@@ -28,4 +28,4 @@ def evaluation_component(
     metrics.log_metric("test_rmse", float(test_metrics["rmse"]))
     metrics.log_metric("test_r2", float(test_metrics["r2"]))
 
-    print("Test metrics: {}".format(test_metrics))
+    print(f"Test metrics: {test_metrics}")

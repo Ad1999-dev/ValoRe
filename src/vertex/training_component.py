@@ -13,9 +13,9 @@ def training_component(
     seed: int = 42,
     cv_folds: int = 5,
 ):
-    import joblib
     import os
 
+    import joblib
     import pandas as pd
 
     from src.modeling.model_selection import run_grid_search
@@ -43,5 +43,5 @@ def training_component(
     if best_cv_rmse is not None:
         metrics.log_metric("best_cv_rmse", float(best_cv_rmse))
 
-    print("Best params: {}".format(best_params))
-    print("Saved trained model to {}".format(model.path))
+    print(f"Best params: {best_params}")
+    print(f"Saved trained model to {model.path}")

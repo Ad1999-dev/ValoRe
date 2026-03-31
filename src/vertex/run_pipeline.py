@@ -1,5 +1,5 @@
-from kfp import compiler, dsl
 from google.cloud import aiplatform
+from kfp import compiler, dsl
 
 from src.config import (
     BQ_DATASET_ID,

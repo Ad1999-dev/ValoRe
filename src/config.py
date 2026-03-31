@@ -32,7 +32,7 @@ API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("API_PORT", "8080"))
 
 # Vertex settings
-GCS_BUCKET_URI = "gs://{}".format(GCS_BUCKET_NAME)
+GCS_BUCKET_URI = f"gs://{GCS_BUCKET_NAME}"
 
 VERTEX_REPOSITORY = os.getenv(
     "VERTEX_REPOSITORY",
@@ -41,16 +41,12 @@ VERTEX_REPOSITORY = os.getenv(
 
 VERTEX_PIPELINE_ROOT = os.getenv(
     "VERTEX_PIPELINE_ROOT",
-    "{}/pipeline_root_valore/".format(GCS_BUCKET_URI),
+    f"{GCS_BUCKET_URI}/pipeline_root_valore/",
 )
 
 VERTEX_BASE_IMAGE = os.getenv(
     "VERTEX_BASE_IMAGE",
-    "{}-docker.pkg.dev/{}/{}/pipeline-base:latest".format(
-        REGION,
-        PROJECT_ID,
-        VERTEX_REPOSITORY,
-    ),
+    f"{REGION}-docker.pkg.dev/{PROJECT_ID}/{VERTEX_REPOSITORY}/pipeline-base:latest",
 )
 
 VERTEX_PIPELINE_JSON = REPO_ROOT / "valore_pipeline.json"
