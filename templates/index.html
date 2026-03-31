@@ -12,7 +12,9 @@
         h1 { text-align: center; color: #1a1a1a; margin-top: 0; }
         h3 { border-bottom: 2px solid #007bff; padding-bottom: 8px; color: #007bff; margin-top: 30px; }
 
-        .endpoints { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 30px; border-left: 5px solid #007bff; }
+        /* Blue left border removed here */
+        .endpoints { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 30px; }
+
         .endpoint-item { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee; }
         .endpoint-item:last-child { border-bottom: none; }
 
@@ -46,18 +48,15 @@
         a { color: #007bff; text-decoration: none; font-weight: bold; }
         a:hover { text-decoration: underline; }
 
-        .setup-section { margin-bottom: 40px; }
-        .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        @media (max-width: 768px) { .setup-grid { grid-template-columns: 1fr; } }
-
-        .port-note {
-            font-size: 0.9rem;
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 10px;
+        .url-note {
+            font-size: 0.95rem;
+            background-color: #e7f3ff;
+            color: #0056b3;
+            padding: 12px;
             border-radius: 6px;
-            border: 1px solid #ffeeba;
-            margin-top: 10px;
+            border: 1px solid #b8daff;
+            margin-bottom: 20px;
+            text-align: center;
         }
     </style>
 </head>
@@ -66,48 +65,18 @@
 <div class="card">
     <h1>🏠 {{ title }}</h1>
 
-    <div class="setup-section">
-        <h3>🚀 Execution Guide</h3>
-        <div class="endpoint-desc">Choose the command based on your operating system:</div>
-
-        <div class="setup-grid">
-            <div>
-                <span class="curl-label">Local Development (uv)</span>
-                <div class="curl-block">uv run uvicorn src.api.app:app --host 0.0.0.0 --port LOCAL_PORT --reload</div>
-                <div class="endpoint-desc">URL: <span class="url-highlight">http://localhost:LOCAL_PORT</span></div>
-            </div>
-            <div>
-                <span class="curl-label">Docker Container</span>
-                <div class="curl-block">docker run -p LOCAL_PORT:8080 valore-app</div>
-                <div class="endpoint-desc">URL: <span class="url-highlight">http://localhost:LOCAL_PORT</span></div>
-            </div>
-        </div>
-
-        <div class="port-note">
-            <strong>Port Configuration:</strong> Replace <code>LOCAL_PORT</code> with a valid port number (e.g., 8000). Ensure the port is open on your firewall and not in use.
-        </div>
-
-        <div style="margin-top: 25px;">
-            <span class="curl-label">Google Cloud Run (Deploy)</span>
-
-            <span class="os-tag">WINDOWS (CMD)</span>
-            <div class="curl-block">gcloud run deploy valore --project=directed-work-lab2 --region=europe-west1 --source="%cd%" --allow-unauthenticated</div>
-
-            <span class="os-tag">LINUX / APPLE / POWERSHELL</span>
-            <div class="curl-block">gcloud run deploy valore --project=directed-work-lab2 --region=europe-west1 --source=$(pwd) --allow-unauthenticated</div>
-
-            <div class="endpoint-desc">URL: <span class="url-highlight">SERVICE_URL</span></div>
-        </div>
-    </div>
-
     <div class="endpoints">
-        <h3>📖 API Reference (Replace URL with your target)</h3>
+        <h3>📖 API Reference</h3>
+
+        <div class="url-note">
+            <strong>Important:</strong> Please replace <code>SERVICE_URL</code> in the examples below with the official URL provided by your deployment (e.g., Cloud Run or Localhost).
+        </div>
 
         <div class="endpoint-item">
             <code class="method">GET /health</code>
             <div class="endpoint-desc">Diagnostic check for server and model status.</div>
             <span class="curl-label">Example:</span>
-            <div class="curl-block">curl -X GET URL/health</div>
+            <div class="curl-block">curl -X GET SERVICE_URL/health</div>
         </div>
 
         <div class="endpoint-item">
@@ -115,17 +84,17 @@
             <div class="endpoint-desc">Submits 20 features to the ML pipeline. Expects a JSON object nested in a <code>"data"</code> key.</div>
 
             <span class="os-tag">LINUX / APPLE / POWERSHELL</span>
-            <div class="curl-block">curl -X POST "URL/predict" -H "Content-Type: application/json" -d '{"data": {"id": "7229300521", "date": "20141013T000000", "bedrooms": 2, "bathrooms": 1, "sqft_living": 1180, "sqft_lot": 5650, "floors": "1", "waterfront": 0, "view": 0, "condition": 3, "grade": 7, "sqft_above": 1180, "sqft_basement": 0, "yr_built": 1955, "yr_renovated": 0, "zipcode": "98178", "lat": 47.5112, "long": -122.257, "sqft_living15": 1340, "sqft_lot15": 5650}}'</div>
+            <div class="curl-block">curl -X POST "SERVICE_URL/predict" -H "Content-Type: application/json" -d '{"data": {"id": "7229300521", "date": "20141013T000000", "bedrooms": 2, "bathrooms": 1, "sqft_living": 1180, "sqft_lot": 5650, "floors": "1", "waterfront": 0, "view": 0, "condition": 3, "grade": 7, "sqft_above": 1180, "sqft_basement": 0, "yr_built": 1955, "yr_renovated": 0, "zipcode": "98178", "lat": 47.5112, "long": -122.257, "sqft_living15": 1340, "sqft_lot15": 5650}}'</div>
 
             <span class="os-tag">WINDOWS (CMD)</span>
-            <div class="curl-block">curl -X POST "URL/predict" -H "Content-Type: application/json" -d "{\"data\": {\"id\": \"7229300521\", \"date\": \"20141013T000000\", \"bedrooms\": 2, \"bathrooms\": 1, \"sqft_living\": 1180, \"sqft_lot\": 5650, \"floors\": \"1\", \"waterfront\": 0, \"view\": 0, \"condition\": 3, \"grade\": 7, \"sqft_above\": 1180, \"sqft_basement\": 0, \"yr_built\": 1955, \"yr_renovated\": 0, \"zipcode\": \"98178\", \"lat\": 47.5112, \"long\": -122.257, \"sqft_living15\": 1340, \"sqft_lot15\": 5650}}"</div>
+            <div class="curl-block">curl -X POST "SERVICE_URL/predict" -H "Content-Type: application/json" -d "{\"data\": {\"id\": \"7229300521\", \"date\": \"20141013T000000\", \"bedrooms\": 2, \"bathrooms\": 1, \"sqft_living\": 1180, \"sqft_lot\": 5650, \"floors\": \"1\", \"waterfront\": 0, \"view\": 0, \"condition\": 3, \"grade\": 7, \"sqft_above\": 1180, \"sqft_basement\": 0, \"yr_built\": 1955, \"yr_renovated\": 0, \"zipcode\": \"98178\", \"lat\": 47.5112, \"long\": -122.257, \"sqft_living15\": 1340, \"sqft_lot15\": 5650}}"</div>
         </div>
 
         <div class="endpoint-item">
             <code class="method">GET /past_predictions</code>
             <div class="endpoint-desc">Retrieves the history of all predictions stored in memory.</div>
             <span class="curl-label">Example:</span>
-            <div class="curl-block">curl -X GET URL/past_predictions</div>
+            <div class="curl-block">curl -X GET SERVICE_URL/past_predictions</div>
         </div>
 
         <div class="endpoint-item">
@@ -133,15 +102,15 @@
             <div class="endpoint-desc">Updates an existing record's price prediction by its ID.</div>
 
             <span class="os-tag">LINUX / APPLE / POWERSHELL</span>
-            <div class="curl-block">curl -X PUT "URL/past_predictions/7229300521" -H "Content-Type: application/json" -d '{"prediction": 250000.0}'</div>
+            <div class="curl-block">curl -X PUT "SERVICE_URL/past_predictions/7229300521" -H "Content-Type: application/json" -d '{"prediction": 250000.0}'</div>
 
             <span class="os-tag">WINDOWS (CMD)</span>
-            <div class="curl-block">curl -X PUT "URL/past_predictions/7229300521" -H "Content-Type: application/json" -d "{\"prediction\": 250000.0}"</div>
+            <div class="curl-block">curl -X PUT "SERVICE_URL/past_predictions/7229300521" -H "Content-Type: application/json" -d "{\"prediction\": 250000.0}"</div>
         </div>
 
         <div class="endpoint-item">
             <code class="method">GET /docs</code>
-            <div class="endpoint-desc">Interactive documentation for testing.</div>
+            <div class="endpoint-desc">Interactive documentation for testing all endpoints.</div>
             <p><a href="/docs" target="_blank">Open Swagger UI →</a></p>
         </div>
     </div>

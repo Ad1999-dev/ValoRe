@@ -9,8 +9,8 @@ from fastapi.templating import Jinja2Templates
 from google.cloud import storage
 from pydantic import BaseModel, Field
 
-# Import your custom logic
-from src.features import add_date_features, pre_process
+# Import our custom logic
+from src.modeling.preprocessing import clean_dataframe
 
 app = FastAPI(
     title="King County house price predictor",
@@ -89,14 +89,57 @@ async def startup_event():
     model = load_model_from_gcs()
 
 
+class HouseData(BaseModel):
+    # Identifiers & Dates (No bounds needed, pattern handles date)
+    id: str = Field(..., description="Property identifier")
+    date: str = Field(..., pattern=r"^\d{8}T000000$", description="YYYYMMDDT000000")
+
+    # Physical Attributes (Min bounds only)
+    bedrooms: int = Field(..., ge=0)
+    bathrooms: float = Field(..., ge=0.0)
+    sqft_living: int = Field(..., ge=0)
+    sqft_lot: int = Field(..., ge=0)
+    floors: float = Field(..., ge=1.0)  # Logic: Must have at least 1 floor
+
+    # Categorical / Ordinal (Min bounds only)
+    # Note: Model might act weird if view/condition/grade exceed original scales
+    waterfront: int = Field(..., ge=0)
+    view: int = Field(..., ge=0)
+    condition: int = Field(..., ge=1)
+    grade: int = Field(..., ge=1)
+
+    # Area breakdown (Min bounds only)
+    sqft_above: int = Field(..., ge=0)
+    sqft_basement: int = Field(..., ge=0)
+
+    # Years (Logic: Built year can't be negative)
+    yr_built: int = Field(..., ge=0)
+    yr_renovated: int = Field(..., ge=0)
+
+    # Location (Removed specific lat/long bounds, keeping patterns for zipcode)
+    zipcode: str = Field(...)
+    lat: float = Field(...)
+    long: float = Field(...)
+
+    # Neighborhood Context (Min bounds only)
+    sqft_living15: int = Field(..., ge=0)
+    sqft_lot15: int = Field(..., ge=0)
+
+
 class PredictionPayload(BaseModel):
-    data: dict = Field(
-        ..., example={"id": "7229300521", "bedrooms": 2, "sqft_living": 1180}
-    )
+    # This wraps the HouseData inside a "data" key to match the requirements
+    data: HouseData
 
 
 class UpdatePayload(BaseModel):
-    prediction: float
+    # Enforcing the target range from your data card
+    prediction: float = Field(
+        ...,
+        example=10000,
+        ge=1000,
+        le=10000000,
+        description="The corrected house price prediction in USD",
+    )
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -117,15 +160,14 @@ async def predict(payload: PredictionPayload):
         )
 
     try:
-        input_dict = payload.data
+        input_dict = payload.data.model_dump()
         record_id = str(input_dict.get("id", "unknown"))
 
         # Convert input to DataFrame
         df = pd.DataFrame([input_dict])
 
         # Apply your custom feature engineering
-        df = pre_process(df)
-        df = add_date_features(df)
+        df = clean_dataframe(df)
 
         # Check for missing columns before predicting
         missing_cols = set(REQUIRED_FEATURES) - set(df.columns)
