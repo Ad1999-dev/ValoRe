@@ -11,7 +11,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBRegressor
 
-
 DEFAULT_PARAM_GRIDS = {
     "dummy": {
         "model__strategy": ["mean", "median"],
@@ -94,7 +93,7 @@ def build_model(model_name, random_state=42):
             n_jobs=-1,
         )
 
-    raise ValueError("Unsupported model_name: {}".format(model_name))
+    raise ValueError(f"Unsupported model_name: {model_name}")
 
 
 def run_grid_search(
@@ -109,7 +108,7 @@ def run_grid_search(
     Run GridSearchCV on the chosen model using the train dataframe.
     """
     if target_col not in train_df.columns:
-        raise ValueError("Target column '{}' not found in train_df".format(target_col))
+        raise ValueError(f"Target column '{target_col}' not found in train_df")
 
     X_train = train_df.drop(columns=[target_col])
     y_train = train_df[target_col]

@@ -74,7 +74,7 @@ def main():
         random_state=args.seed,
     )
 
-    print("Running model selection for '{}'...".format(args.model_name))
+    print(f"Running model selection for '{args.model_name}'...")
     selection_result = run_grid_search(
         train_df=train_df,
         target_col=args.target,
@@ -91,7 +91,7 @@ def main():
     print(best_params)
 
     if best_cv_rmse is not None:
-        print("Best CV RMSE: {:.4f}".format(best_cv_rmse))
+        print(f"Best CV RMSE: {best_cv_rmse:.4f}")
 
     print("Fitting final model on the training dataframe...")
     best_model = fit_final_model(best_model, train_df, args.target)
@@ -130,9 +130,9 @@ def main():
     )
     summary_df.to_csv(out_dir / "training_summary.csv", index=False)
 
-    print("Saved model to: {}".format(out_dir / MODEL_FILE.name))
-    print("Saved metrics to: {}".format(out_dir / METRICS_FILE.name))
-    print("Saved params to: {}".format(out_dir / BEST_PARAMS_FILE.name))
+    print(f"Saved model to: {out_dir / MODEL_FILE.name}")
+    print(f"Saved metrics to: {out_dir / METRICS_FILE.name}")
+    print(f"Saved params to: {out_dir / BEST_PARAMS_FILE.name}")
 
 
 if __name__ == "__main__":

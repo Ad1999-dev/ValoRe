@@ -16,7 +16,7 @@ def evaluate_regression(model, df, target_col):
     Evaluate a fitted model on a dataframe that still contains the target.
     """
     if target_col not in df.columns:
-        raise ValueError("Target column '{}' not found in dataframe".format(target_col))
+        raise ValueError(f"Target column '{target_col}' not found in dataframe")
 
     X = df.drop(columns=[target_col])
     y = df[target_col]
