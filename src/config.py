@@ -26,3 +26,31 @@ MODEL_FILE = MODELS_DIR / "model.joblib"
 METRICS_FILE = MODELS_DIR / "metrics.json"
 BEST_PARAMS_FILE = MODELS_DIR / "best_params.json"
 BASELINES_FILE = MODELS_DIR / "val_baselines.csv"
+
+# API settings
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", "8080"))
+
+# Vertex settings
+GCS_BUCKET_URI = "gs://{}".format(GCS_BUCKET_NAME)
+
+VERTEX_REPOSITORY = os.getenv(
+    "VERTEX_REPOSITORY",
+    "vertex-ai-pipeline-example",
+)
+
+VERTEX_PIPELINE_ROOT = os.getenv(
+    "VERTEX_PIPELINE_ROOT",
+    "{}/pipeline_root_valore/".format(GCS_BUCKET_URI),
+)
+
+VERTEX_BASE_IMAGE = os.getenv(
+    "VERTEX_BASE_IMAGE",
+    "{}-docker.pkg.dev/{}/{}/pipeline-base:latest".format(
+        REGION,
+        PROJECT_ID,
+        VERTEX_REPOSITORY,
+    ),
+)
+
+VERTEX_PIPELINE_JSON = REPO_ROOT / "valore_pipeline.json"
