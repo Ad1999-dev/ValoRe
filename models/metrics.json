@@ -1,29 +1,19 @@
 {
-  "data_path": "bq://valore-mlsd-project.valore.housing_raw",
-  "project_id": null,
+  "data_source": "bq://valore-mlsd-project.valore.housing_raw",
   "target": "price",
-  "seed": 42,
-  "splits": {
-    "test_size": 0.2,
-    "val_size_total": 0.1
-  },
+  "model_name": "xgboost",
   "n_rows": 21613,
-  "n_features": 20,
-  "baseline_val_table": "val_baselines.csv",
+  "n_train_rows": 17290,
+  "n_test_rows": 4323,
   "best_params": {
-    "model__learning_rate": 0.1,
-    "model__max_depth": 4,
-    "model__n_estimators": 800
+    "model__learning_rate": 0.05,
+    "model__max_depth": 6,
+    "model__n_estimators": 500
   },
-  "best_cv_rmse": 124551.78099462632,
-  "tuned_val_metrics": {
-    "mae": 65934.5633022086,
-    "rmse": 120080.53352790505,
-    "r2": 0.8838440252468786
-  },
+  "best_cv_rmse": 125336.46585918132,
   "test_metrics": {
-    "mae": 62549.77185981957,
-    "rmse": 107557.42566984479,
-    "r2": 0.906286252577734
+    "mae": 62494.65569699861,
+    "rmse": 109739.00667254224,
+    "r2": 0.9024461179894329
   }
 }
