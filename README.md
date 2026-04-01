@@ -16,10 +16,24 @@ Implemented / expected in Milestone 1:
 - CI/CD: Ruff + pre-commit + pytest + GitHub Actions on PRs to `develop` and `main`
 - Cloud data (online): dataset loaded into **BigQuery** for online EDA and training extraction
 - Storage: dataset can also be uploaded to **GCS** (raw CSV + artifacts)
-
+- EDA notebook and first baseline regression experiments
+- model training and saved local artifacts
 
 ### 2.2. Milestone 2 (Sprint 3–4)
-(TBD)
+
+**Goal:** move from a training-focused repository to a more complete ML system by adding model serving, containerization, cloud deployment, and a first cloud training pipeline.
+
+
+Implemented / expected in Milestone 2:
+- migrated dependency management from **pip + requirements.txt** to **uv**
+- refactored local modeling code into reusable modules under `src/modeling/`
+- added a experimentation notebook to compare candidate regression models
+-   selected **XGBRegressor** as the main model family for serving
+- built a **API** under `src/api/` with routes
+- packaged the serving application with **Docker**
+- added a first **Vertex AI Pipeline** under `src/vertex/` with components for data ingestion, preprocessing, train/test split, training, evaluation
+- used **BigQuery** as the cloud data source and **GCS** for pipeline artifacts
+- pushed a dedicated Vertex base image to **Artifact Registry**
 
 ### 2.3. Milestone 3 (Sprint 5–6)
 (TBD)
@@ -27,26 +41,34 @@ Implemented / expected in Milestone 1:
 
 
 ## 3. Dataset
-- Dataset: `Housing.csv` (Kaggle: Housing Price Dataset)
+- Dataset: `Housing.csv` (Kaggle)
 - Type: structured/tabular
-- Target: house price (exact column name confirmed in EDA)
+- Target: house price
 
-**Important:** the dataset is **not committed to Git**.
-For Milestone 1, the dataset is stored and used **online** via:
+The dataset is stored and used **online** via:
 - **BigQuery table**: `valore-mlsd-project.valore.housing_raw`
 - (Optional) raw file in **GCS**: `gs://mlsd-valore-2026-0001/data/raw/Housing.csv`
 
 
 ## 4. Repository structure
 
-```
+```bash
 ValoRe
-├── src/                        # source code
-├── tests/                      # pytest tests
-├── models/                     # saved models
-├── docs/                       # documentation
-├── notebooks/                  # notebooks
-└── slides/                     # milestone slides
+├── src/                              # source code
+│   ├── config.py                     # project configuration
+│   ├── api/                          # API serving layer
+│   ├── cloud/                        # cloud helper functions
+│   ├── modeling/                     # local training code
+│   ├── scripts/                      # utility scripts
+│   └── vertex/                       # Vertex AI pipeline code
+├── template/                         # template files for API
+├── tests/                            # pytest tests
+├── models/                           # saved local model artifacts and metrics
+├── docs/                             # project documentation
+├── notebooks/                        # notebooks used during exploration and experimentation
+│   ├── eda.ipynb                     # exploratory data analysis
+│   └── experimentation.ipynb         # model comparison notebook used to choose the serving model family
+└── slides/                           # milestone slides
 ```
 
 
