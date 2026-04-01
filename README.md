@@ -30,6 +30,8 @@ Implemented / expected in Milestone 2:
 - added a experimentation notebook to compare candidate regression models
 -   selected **XGBRegressor** as the main model family for serving
 - built a **API** under `src/api/` with routes
+- built a minimal html front-end to display the **HTTP endpoints** and the **Swagger UI** under `src/templates/`
+- added a **pytest** assessing the status and output of the **API** under `src/tests/`
 - packaged the serving application with **Docker**
 - added a first **Vertex AI Pipeline** under `src/vertex/` with components for data ingestion, preprocessing, train/test split, training, evaluation
 - used **BigQuery** as the cloud data source and **GCS** for pipeline artifacts
