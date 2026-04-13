@@ -1,0 +1,488 @@
+{
+  "components": {
+    "comp-data-ingestion": {
+      "executorLabel": "exec-data-ingestion",
+      "inputDefinitions": {
+        "parameters": {
+          "bq_dataset": {
+            "parameterType": "STRING"
+          },
+          "bq_project": {
+            "parameterType": "STRING"
+          },
+          "bq_table": {
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "artifacts": {
+          "dataset": {
+            "artifactType": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        }
+      }
+    },
+    "comp-evaluation-component": {
+      "executorLabel": "exec-evaluation-component",
+      "inputDefinitions": {
+        "artifacts": {
+          "model": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          },
+          "test_dataset": {
+            "artifactType": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "target_col": {
+            "defaultValue": "price",
+            "isOptional": true,
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "artifacts": {
+          "metrics": {
+            "artifactType": {
+              "schemaTitle": "system.Metrics",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        }
+      }
+    },
+    "comp-preprocessing-component": {
+      "executorLabel": "exec-preprocessing-component",
+      "inputDefinitions": {
+        "artifacts": {
+          "input_dataset": {
+            "artifactType": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        }
+      },
+      "outputDefinitions": {
+        "artifacts": {
+          "processed_dataset": {
+            "artifactType": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        }
+      }
+    },
+    "comp-splitting-component": {
+      "executorLabel": "exec-splitting-component",
+      "inputDefinitions": {
+        "artifacts": {
+          "processed_dataset": {
+            "artifactType": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "seed": {
+            "defaultValue": 42.0,
+            "isOptional": true,
+            "parameterType": "NUMBER_INTEGER"
+          },
+          "test_size": {
+            "defaultValue": 0.2,
+            "isOptional": true,
+            "parameterType": "NUMBER_DOUBLE"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "artifacts": {
+          "test_dataset": {
+            "artifactType": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          },
+          "train_dataset": {
+            "artifactType": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        }
+      }
+    },
+    "comp-training-component": {
+      "executorLabel": "exec-training-component",
+      "inputDefinitions": {
+        "artifacts": {
+          "train_dataset": {
+            "artifactType": {
+              "schemaTitle": "system.Dataset",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "cv_folds": {
+            "defaultValue": 5.0,
+            "isOptional": true,
+            "parameterType": "NUMBER_INTEGER"
+          },
+          "model_name": {
+            "defaultValue": "xgboost",
+            "isOptional": true,
+            "parameterType": "STRING"
+          },
+          "seed": {
+            "defaultValue": 42.0,
+            "isOptional": true,
+            "parameterType": "NUMBER_INTEGER"
+          },
+          "target_col": {
+            "defaultValue": "price",
+            "isOptional": true,
+            "parameterType": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "artifacts": {
+          "metrics": {
+            "artifactType": {
+              "schemaTitle": "system.Metrics",
+              "schemaVersion": "0.0.1"
+            }
+          },
+          "model": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        }
+      }
+    }
+  },
+  "defaultPipelineRoot": "gs://mlsd-valore-2026-0001/pipeline_root_valore/",
+  "deploymentSpec": {
+    "executors": {
+      "exec-data-ingestion": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "data_ingestion"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef data_ingestion(\n    bq_project: str,\n    bq_dataset: str,\n    bq_table: str,\n    dataset: Output[Dataset],\n):\n    from google.cloud import bigquery\n\n    client = bigquery.Client(project=bq_project)\n\n    extract_job = client.extract_table(\n        \"{}.{}.{}\".format(bq_project, bq_dataset, bq_table),\n        destination_uris=[\"{}/*.parquet\".format(dataset.uri)],\n        job_config=bigquery.ExtractJobConfig(\n            destination_format=bigquery.DestinationFormat.PARQUET\n        ),\n    )\n\n    extract_job.result()\n    print(\"Exported raw table to {}\".format(dataset.uri))\n\n"
+          ],
+          "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
+        }
+      },
+      "exec-evaluation-component": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "evaluation_component"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef evaluation_component(\n    model: Input[Model],\n    test_dataset: Input[Dataset],\n    metrics: Output[Metrics],\n    target_col: str = \"price\",\n):\n    import joblib\n    import os\n\n    import pandas as pd\n\n    from src.modeling.evaluation import evaluate_regression\n\n    loaded_model = joblib.load(model.path)\n\n    test_path = os.path.join(test_dataset.path, \"test.parquet\")\n    test_df = pd.read_parquet(test_path)\n\n    test_metrics = evaluate_regression(loaded_model, test_df, target_col)\n\n    metrics.log_metric(\"test_mae\", float(test_metrics[\"mae\"]))\n    metrics.log_metric(\"test_rmse\", float(test_metrics[\"rmse\"]))\n    metrics.log_metric(\"test_r2\", float(test_metrics[\"r2\"]))\n\n    print(\"Test metrics: {}\".format(test_metrics))\n\n"
+          ],
+          "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
+        }
+      },
+      "exec-preprocessing-component": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "preprocessing_component"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef preprocessing_component(\n    input_dataset: Input[Dataset],\n    processed_dataset: Output[Dataset],\n):\n    import glob\n    import os\n\n    import pandas as pd\n\n    from src.modeling.preprocessing import clean_dataframe\n\n    parquet_files = glob.glob(os.path.join(input_dataset.path, \"*.parquet\"))\n\n    if not parquet_files:\n        raise ValueError(\"No parquet files found in {}\".format(input_dataset.path))\n\n    frames = []\n    for file_path in parquet_files:\n        frames.append(pd.read_parquet(file_path))\n\n    df = pd.concat(frames, ignore_index=True)\n    df = clean_dataframe(df)\n\n    os.makedirs(processed_dataset.path, exist_ok=True)\n    output_path = os.path.join(processed_dataset.path, \"data.parquet\")\n    df.to_parquet(output_path, index=False)\n\n    print(\"Saved processed data to {}\".format(output_path))\n\n"
+          ],
+          "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
+        }
+      },
+      "exec-splitting-component": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "splitting_component"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef splitting_component(\n    processed_dataset: Input[Dataset],\n    train_dataset: Output[Dataset],\n    test_dataset: Output[Dataset],\n    test_size: float = 0.2,\n    seed: int = 42,\n):\n    import os\n\n    import pandas as pd\n\n    from src.modeling.splitting import split_train_test\n\n    input_path = os.path.join(processed_dataset.path, \"data.parquet\")\n    df = pd.read_parquet(input_path)\n\n    train_df, test_df = split_train_test(\n        df,\n        test_size=test_size,\n        random_state=seed,\n    )\n\n    os.makedirs(train_dataset.path, exist_ok=True)\n    os.makedirs(test_dataset.path, exist_ok=True)\n\n    train_df.to_parquet(os.path.join(train_dataset.path, \"train.parquet\"), index=False)\n    test_df.to_parquet(os.path.join(test_dataset.path, \"test.parquet\"), index=False)\n\n    print(\"Saved split datasets.\")\n\n"
+          ],
+          "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
+        }
+      },
+      "exec-training-component": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "training_component"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef training_component(\n    train_dataset: Input[Dataset],\n    model: Output[Model],\n    metrics: Output[Metrics],\n    target_col: str = \"price\",\n    model_name: str = \"xgboost\",\n    seed: int = 42,\n    cv_folds: int = 5,\n):\n    import joblib\n    import os\n\n    import pandas as pd\n\n    from src.modeling.model_selection import run_grid_search\n    from src.modeling.training import fit_final_model\n\n    train_path = os.path.join(train_dataset.path, \"train.parquet\")\n    train_df = pd.read_parquet(train_path)\n\n    result = run_grid_search(\n        train_df=train_df,\n        target_col=target_col,\n        model_name=model_name,\n        random_state=seed,\n        cv_folds=cv_folds,\n    )\n\n    best_model = result[\"best_estimator\"]\n    best_params = result[\"best_params\"]\n    best_cv_rmse = result[\"best_cv_rmse\"]\n\n    best_model = fit_final_model(best_model, train_df, target_col)\n\n    joblib.dump(best_model, model.path)\n\n    if best_cv_rmse is not None:\n        metrics.log_metric(\"best_cv_rmse\", float(best_cv_rmse))\n\n    print(\"Best params: {}\".format(best_params))\n    print(\"Saved trained model to {}\".format(model.path))\n\n"
+          ],
+          "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
+        }
+      }
+    }
+  },
+  "pipelineInfo": {
+    "name": "valore-pipeline"
+  },
+  "root": {
+    "dag": {
+      "tasks": {
+        "data-ingestion": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-data-ingestion"
+          },
+          "inputs": {
+            "parameters": {
+              "bq_dataset": {
+                "componentInputParameter": "bq_dataset"
+              },
+              "bq_project": {
+                "componentInputParameter": "bq_project"
+              },
+              "bq_table": {
+                "componentInputParameter": "bq_table"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "data-ingestion"
+          }
+        },
+        "evaluation-component": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-evaluation-component"
+          },
+          "dependentTasks": [
+            "splitting-component",
+            "training-component"
+          ],
+          "inputs": {
+            "artifacts": {
+              "model": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "model",
+                  "producerTask": "training-component"
+                }
+              },
+              "test_dataset": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "test_dataset",
+                  "producerTask": "splitting-component"
+                }
+              }
+            },
+            "parameters": {
+              "target_col": {
+                "componentInputParameter": "target_col"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "evaluation-component"
+          }
+        },
+        "preprocessing-component": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-preprocessing-component"
+          },
+          "dependentTasks": [
+            "data-ingestion"
+          ],
+          "inputs": {
+            "artifacts": {
+              "input_dataset": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "dataset",
+                  "producerTask": "data-ingestion"
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "preprocessing-component"
+          }
+        },
+        "splitting-component": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-splitting-component"
+          },
+          "dependentTasks": [
+            "preprocessing-component"
+          ],
+          "inputs": {
+            "artifacts": {
+              "processed_dataset": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "processed_dataset",
+                  "producerTask": "preprocessing-component"
+                }
+              }
+            },
+            "parameters": {
+              "seed": {
+                "runtimeValue": {
+                  "constant": 42.0
+                }
+              },
+              "test_size": {
+                "runtimeValue": {
+                  "constant": 0.2
+                }
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "splitting-component"
+          }
+        },
+        "training-component": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-training-component"
+          },
+          "dependentTasks": [
+            "splitting-component"
+          ],
+          "inputs": {
+            "artifacts": {
+              "train_dataset": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "train_dataset",
+                  "producerTask": "splitting-component"
+                }
+              }
+            },
+            "parameters": {
+              "cv_folds": {
+                "runtimeValue": {
+                  "constant": 5.0
+                }
+              },
+              "model_name": {
+                "componentInputParameter": "model_name"
+              },
+              "seed": {
+                "runtimeValue": {
+                  "constant": 42.0
+                }
+              },
+              "target_col": {
+                "componentInputParameter": "target_col"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "training-component"
+          }
+        }
+      }
+    },
+    "inputDefinitions": {
+      "parameters": {
+        "bq_dataset": {
+          "defaultValue": "valore",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "bq_project": {
+          "defaultValue": "valore-mlsd-project",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "bq_table": {
+          "defaultValue": "housing_raw",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "model_name": {
+          "defaultValue": "xgboost",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "target_col": {
+          "defaultValue": "price",
+          "isOptional": true,
+          "parameterType": "STRING"
+        }
+      }
+    }
+  },
+  "schemaVersion": "2.1.0",
+  "sdkVersion": "kfp-2.16.0"
+}

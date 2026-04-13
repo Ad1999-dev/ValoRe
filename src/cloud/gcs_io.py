@@ -1,3 +1,4 @@
+from google.api_core.exceptions import Conflict
 from google.cloud import storage
 
 
@@ -8,8 +9,21 @@ def get_gcs_client(project_id):
 def create_bucket(project_id, bucket_name, location="europe-west1"):
     client = get_gcs_client(project_id)
     bucket = client.bucket(bucket_name)
-    new_bucket = client.create_bucket(bucket, location=location)
-    print(f"Bucket created: {new_bucket.name} (location: {new_bucket.location})")
+
+    try:
+        new_bucket = client.create_bucket(bucket, location=location)
+        print(f"Bucket created: {new_bucket.name} ({new_bucket.location})")
+    except Conflict as err:
+        existing_bucket = client.lookup_bucket(bucket_name)
+        if existing_bucket is None:
+            raise RuntimeError(
+                f"Bucket name '{bucket_name}' is already in use or not accessible "
+                f"for project '{project_id}'. Choose a different bucket name or "
+                f"verify that you have access to the bucket."
+            ) from err
+        print(
+            f"Bucket already exists and is accessible: {existing_bucket.name} ({existing_bucket.location})"
+        )
 
 
 def upload_file(project_id, bucket_name, local_path, blob_path):
@@ -31,6 +45,7 @@ def download_file(project_id, bucket_name, blob_path, local_path):
 def list_files(project_id, bucket_name, prefix=None):
     client = get_gcs_client(project_id)
     blobs = client.list_blobs(bucket_name, prefix=prefix)
-    print(f"Listing gs://{bucket_name}/{prefix or ''}")
-    for b in blobs:
-        print(b.name)
+
+    print(f"Files in gs://{bucket_name}/{prefix or ''}")
+    for blob in blobs:
+        print(blob.name)
