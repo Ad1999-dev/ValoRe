@@ -51,42 +51,72 @@ REQUIRED_FEATURES = [
 model = None
 
 
-def load_model_from_gcs():
-    """
-    Fetches the model binary from Google Cloud Storage.
-    Expects MODEL_PATH env var (e.g., gs://bucket-name/folder/model_file)
-    """
-    model_uri = os.getenv("MODEL_PATH")
+def _load_from_gcs(model_uri: str):
+    """Downloads a joblib model from a GCS URI and returns the loaded object."""
+    project_id = os.getenv("GCP_PROJECT_ID", "valore-mlsd-project")
+    client = storage.Client(project=project_id)
+    blob = storage.Blob.from_string(model_uri, client=client)
+    buffer = io.BytesIO()
+    blob.download_to_file(buffer)
+    buffer.seek(0)
+    return joblib.load(buffer)
 
-    if not model_uri:
-        print("CRITICAL: MODEL_PATH environment variable is not set.")
-        return None
+
+def load_model_from_registry():
+    """
+    Loads the default version of the registered model from Vertex AI Model Registry.
+    Falls back to MODEL_PATH env var for local development when the registry is
+    not available (e.g. running without GCP credentials).
+    """
+    from google.cloud import aiplatform
+
+    project_id = os.getenv("GCP_PROJECT_ID", "valore-mlsd-project")
+    region = os.getenv("GCP_REGION", "europe-west1")
+    model_display_name = os.getenv("MODEL_DISPLAY_NAME", "valore-xgboost")
 
     try:
-        print(f"Attempting to load model from: {model_uri}")
-        client = storage.Client()
-        # This helper automatically parses the gs:// string
-        blob = storage.Blob.from_string(model_uri, client=client)
+        aiplatform.init(project=project_id, location=region)
 
-        # Download the binary data into a byte stream
-        buffer = io.BytesIO()
-        blob.download_to_file(buffer)
-        buffer.seek(0)
+        models = aiplatform.Model.list(
+            filter=f'display_name="{model_display_name}"',
+            order_by="create_time desc",
+        )
 
-        # Load the model directly from the stream
-        loaded_model = joblib.load(buffer)
-        print("Model loaded successfully from GCS!")
+        if not models:
+            raise ValueError(f"No model named '{model_display_name}' found in registry.")
+
+        latest = models[0]
+        # artifact_uri is the GCS directory; model.joblib sits inside it.
+        artifact_uri = latest.uri.rstrip("/")
+        model_gcs_path = f"{artifact_uri}/model.joblib"
+
+        print(f"Loading from registry: {latest.resource_name} (v{latest.version_id})")
+        print(f"Artifact: {model_gcs_path}")
+
+        loaded_model = _load_from_gcs(model_gcs_path)
+        print("Model loaded from registry.")
         return loaded_model
+
     except Exception as e:
-        print(f"Error loading model from GCS: {e}")
-        return None
+        print(f"Registry load failed ({e}). Falling back to MODEL_PATH.")
+        model_path = os.getenv("MODEL_PATH")
+        if not model_path:
+            print("CRITICAL: MODEL_PATH not set either. No model available.")
+            return None
+        try:
+            loaded_model = _load_from_gcs(model_path)
+            print(f"Model loaded from MODEL_PATH: {model_path}")
+            return loaded_model
+        except Exception as fallback_err:
+            print(f"Fallback load also failed: {fallback_err}")
+            return None
 
 
 @app.on_event("startup")
 async def startup_event():
     """Runs when the container starts up."""
     global model
-    model = load_model_from_gcs()
+    model = load_model_from_registry()
 
 
 class HouseData(BaseModel):
@@ -213,5 +243,7 @@ async def health():
     return {
         "status": "healthy" if model else "unhealthy",
         "model_loaded": model is not None,
-        "model_path": os.getenv("MODEL_PATH", "Not Set"),
+        "model_source": "vertex_registry",
+        "model_display_name": os.getenv("MODEL_DISPLAY_NAME", "valore-xgboost"),
+        "fallback_model_path": os.getenv("MODEL_PATH", "Not Set"),
     }

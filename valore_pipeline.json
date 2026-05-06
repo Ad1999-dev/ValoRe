@@ -85,6 +85,39 @@
         }
       }
     },
+    "comp-promote-model-component": {
+      "executorLabel": "exec-promote-model-component",
+      "inputDefinitions": {
+        "artifacts": {
+          "metrics": {
+            "artifactType": {
+              "schemaTitle": "system.Metrics",
+              "schemaVersion": "0.0.1"
+            }
+          },
+          "model": {
+            "artifactType": {
+              "schemaTitle": "system.Model",
+              "schemaVersion": "0.0.1"
+            }
+          }
+        },
+        "parameters": {
+          "gcs_bucket": {
+            "parameterType": "STRING"
+          },
+          "model_display_name": {
+            "parameterType": "STRING"
+          },
+          "project_id": {
+            "parameterType": "STRING"
+          },
+          "region": {
+            "parameterType": "STRING"
+          }
+        }
+      }
+    },
     "comp-splitting-component": {
       "executorLabel": "exec-splitting-component",
       "inputDefinitions": {
@@ -178,7 +211,7 @@
       }
     }
   },
-  "defaultPipelineRoot": "gs://mlsd-valore-2026-0001/pipeline_root_valore/",
+  "defaultPipelineRoot": "gs://mlsd-valore-2026-v2/pipeline_root_valore/",
   "deploymentSpec": {
     "executors": {
       "exec-data-ingestion": {
@@ -196,7 +229,7 @@
             "sh",
             "-ec",
             "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
-            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef data_ingestion(\n    bq_project: str,\n    bq_dataset: str,\n    bq_table: str,\n    dataset: Output[Dataset],\n):\n    from google.cloud import bigquery\n\n    client = bigquery.Client(project=bq_project)\n\n    extract_job = client.extract_table(\n        \"{}.{}.{}\".format(bq_project, bq_dataset, bq_table),\n        destination_uris=[\"{}/*.parquet\".format(dataset.uri)],\n        job_config=bigquery.ExtractJobConfig(\n            destination_format=bigquery.DestinationFormat.PARQUET\n        ),\n    )\n\n    extract_job.result()\n    print(\"Exported raw table to {}\".format(dataset.uri))\n\n"
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef data_ingestion(\n    bq_project: str,\n    bq_dataset: str,\n    bq_table: str,\n    dataset: Output[Dataset],\n):\n    from google.cloud import bigquery\n\n    client = bigquery.Client(project=bq_project)\n\n    extract_job = client.extract_table(\n        f\"{bq_project}.{bq_dataset}.{bq_table}\",\n        destination_uris=[f\"{dataset.uri}/*.parquet\"],\n        job_config=bigquery.ExtractJobConfig(\n            destination_format=bigquery.DestinationFormat.PARQUET\n        ),\n    )\n\n    extract_job.result()\n    print(f\"Exported raw table to {dataset.uri}\")\n\n"
           ],
           "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
         }
@@ -216,7 +249,7 @@
             "sh",
             "-ec",
             "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
-            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef evaluation_component(\n    model: Input[Model],\n    test_dataset: Input[Dataset],\n    metrics: Output[Metrics],\n    target_col: str = \"price\",\n):\n    import joblib\n    import os\n\n    import pandas as pd\n\n    from src.modeling.evaluation import evaluate_regression\n\n    loaded_model = joblib.load(model.path)\n\n    test_path = os.path.join(test_dataset.path, \"test.parquet\")\n    test_df = pd.read_parquet(test_path)\n\n    test_metrics = evaluate_regression(loaded_model, test_df, target_col)\n\n    metrics.log_metric(\"test_mae\", float(test_metrics[\"mae\"]))\n    metrics.log_metric(\"test_rmse\", float(test_metrics[\"rmse\"]))\n    metrics.log_metric(\"test_r2\", float(test_metrics[\"r2\"]))\n\n    print(\"Test metrics: {}\".format(test_metrics))\n\n"
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef evaluation_component(\n    model: Input[Model],\n    test_dataset: Input[Dataset],\n    metrics: Output[Metrics],\n    target_col: str = \"price\",\n):\n    import os\n\n    import joblib\n    import pandas as pd\n\n    from src.modeling.evaluation import evaluate_regression\n\n    loaded_model = joblib.load(model.path)\n\n    test_path = os.path.join(test_dataset.path, \"test.parquet\")\n    test_df = pd.read_parquet(test_path)\n\n    test_metrics = evaluate_regression(loaded_model, test_df, target_col)\n\n    metrics.log_metric(\"test_mae\", float(test_metrics[\"mae\"]))\n    metrics.log_metric(\"test_rmse\", float(test_metrics[\"rmse\"]))\n    metrics.log_metric(\"test_r2\", float(test_metrics[\"r2\"]))\n\n    print(f\"Test metrics: {test_metrics}\")\n\n"
           ],
           "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
         }
@@ -236,7 +269,27 @@
             "sh",
             "-ec",
             "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
-            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef preprocessing_component(\n    input_dataset: Input[Dataset],\n    processed_dataset: Output[Dataset],\n):\n    import glob\n    import os\n\n    import pandas as pd\n\n    from src.modeling.preprocessing import clean_dataframe\n\n    parquet_files = glob.glob(os.path.join(input_dataset.path, \"*.parquet\"))\n\n    if not parquet_files:\n        raise ValueError(\"No parquet files found in {}\".format(input_dataset.path))\n\n    frames = []\n    for file_path in parquet_files:\n        frames.append(pd.read_parquet(file_path))\n\n    df = pd.concat(frames, ignore_index=True)\n    df = clean_dataframe(df)\n\n    os.makedirs(processed_dataset.path, exist_ok=True)\n    output_path = os.path.join(processed_dataset.path, \"data.parquet\")\n    df.to_parquet(output_path, index=False)\n\n    print(\"Saved processed data to {}\".format(output_path))\n\n"
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef preprocessing_component(\n    input_dataset: Input[Dataset],\n    processed_dataset: Output[Dataset],\n):\n    import glob\n    import os\n\n    import pandas as pd\n\n    from src.modeling.preprocessing import clean_dataframe\n\n    parquet_files = glob.glob(os.path.join(input_dataset.path, \"*.parquet\"))\n\n    if not parquet_files:\n        raise ValueError(f\"No parquet files found in {input_dataset.path}\")\n\n    frames = []\n    for file_path in parquet_files:\n        frames.append(pd.read_parquet(file_path))\n\n    df = pd.concat(frames, ignore_index=True)\n    df = clean_dataframe(df)\n\n    os.makedirs(processed_dataset.path, exist_ok=True)\n    output_path = os.path.join(processed_dataset.path, \"data.parquet\")\n    df.to_parquet(output_path, index=False)\n\n    print(f\"Saved processed data to {output_path}\")\n\n"
+          ],
+          "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
+        }
+      },
+      "exec-promote-model-component": {
+        "container": {
+          "args": [
+            "--executor_input",
+            "{{$}}",
+            "--function_to_execute",
+            "promote_model_component"
+          ],
+          "command": [
+            "sh",
+            "-c",
+            "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"$0\" \"$@\"\n",
+            "sh",
+            "-ec",
+            "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef promote_model_component(\n    model: Input[Model],\n    metrics: Input[Metrics],\n    project_id: str,\n    region: str,\n    gcs_bucket: str,\n    model_display_name: str,\n):\n    \"\"\"\n    Copies the trained model artifact to a stable versioned GCS path and\n    registers it in Vertex AI Model Registry as a new version.\n\n    The API loads the model by querying the registry for the default version\n    of `model_display_name` \u2014 no manual path updates needed after each run.\n    \"\"\"\n    from datetime import datetime, timezone\n\n    from google.cloud import aiplatform, storage\n\n    # \u2500\u2500 1. Copy model to a stable, human-readable GCS path \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    run_ts = datetime.now(timezone.utc).strftime(\"%Y%m%dT%H%M%S\")\n    dest_blob = f\"models/registry/{run_ts}/model.joblib\"\n    dest_gcs_dir = f\"gs://{gcs_bucket}/models/registry/{run_ts}/\"\n\n    gcs_client = storage.Client(project=project_id)\n    bucket_obj = gcs_client.bucket(gcs_bucket)\n    blob = bucket_obj.blob(dest_blob)\n    blob.upload_from_filename(model.path)\n    print(f\"Model copied to {dest_gcs_dir}\")\n\n    # \u2500\u2500 2. Register in Vertex AI Model Registry \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    aiplatform.init(project=project_id, location=region)\n\n    # Look up existing model to create a new version under it (preserves history).\n    # On the very first run there is no existing model, so parent_model=None.\n    existing = aiplatform.Model.list(\n        filter=f'display_name=\"{model_display_name}\"',\n        order_by=\"create_time desc\",\n    )\n    parent_model = existing[0].resource_name if existing else None\n\n    # Retrieve logged metrics to attach as labels for easy identification.\n    test_r2 = metrics.metadata.get(\"test_r2\", 0.0)\n    test_rmse = metrics.metadata.get(\"test_rmse\", 0.0)\n\n    vertex_model = aiplatform.Model.upload(\n        display_name=model_display_name,\n        artifact_uri=dest_gcs_dir,\n        # Pre-built sklearn container satisfies the required field.\n        # The API uses joblib directly \u2014 this container is not used for serving.\n        serving_container_image_uri=(\n            \"us-docker.pkg.dev/vertex-ai/prediction/sklearn-cpu.1-5:latest\"\n        ),\n        parent_model=parent_model,\n        is_default_version=True,\n        labels={\n            # GCP labels: lowercase letters, numbers, underscores, hyphens only.\n            \"trained_at\": run_ts.replace(\"T\", \"-\"),\n            \"test_r2\": str(round(float(test_r2), 4)).replace(\".\", \"_\"),\n            \"test_rmse\": str(round(float(test_rmse), 2)).replace(\".\", \"_\"),\n        },\n    )\n\n    print(f\"Registered model : {vertex_model.resource_name}\")\n    print(f\"Version          : {vertex_model.version_id}\")\n    print(f\"Artifact URI     : {dest_gcs_dir}\")\n\n"
           ],
           "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
         }
@@ -276,7 +329,7 @@
             "sh",
             "-ec",
             "program_path=$(mktemp -d)\n\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\n_KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
-            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef training_component(\n    train_dataset: Input[Dataset],\n    model: Output[Model],\n    metrics: Output[Metrics],\n    target_col: str = \"price\",\n    model_name: str = \"xgboost\",\n    seed: int = 42,\n    cv_folds: int = 5,\n):\n    import joblib\n    import os\n\n    import pandas as pd\n\n    from src.modeling.model_selection import run_grid_search\n    from src.modeling.training import fit_final_model\n\n    train_path = os.path.join(train_dataset.path, \"train.parquet\")\n    train_df = pd.read_parquet(train_path)\n\n    result = run_grid_search(\n        train_df=train_df,\n        target_col=target_col,\n        model_name=model_name,\n        random_state=seed,\n        cv_folds=cv_folds,\n    )\n\n    best_model = result[\"best_estimator\"]\n    best_params = result[\"best_params\"]\n    best_cv_rmse = result[\"best_cv_rmse\"]\n\n    best_model = fit_final_model(best_model, train_df, target_col)\n\n    joblib.dump(best_model, model.path)\n\n    if best_cv_rmse is not None:\n        metrics.log_metric(\"best_cv_rmse\", float(best_cv_rmse))\n\n    print(\"Best params: {}\".format(best_params))\n    print(\"Saved trained model to {}\".format(model.path))\n\n"
+            "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef training_component(\n    train_dataset: Input[Dataset],\n    model: Output[Model],\n    metrics: Output[Metrics],\n    target_col: str = \"price\",\n    model_name: str = \"xgboost\",\n    seed: int = 42,\n    cv_folds: int = 5,\n):\n    import os\n\n    import joblib\n    import pandas as pd\n\n    from src.modeling.model_selection import run_grid_search\n    from src.modeling.training import fit_final_model\n\n    train_path = os.path.join(train_dataset.path, \"train.parquet\")\n    train_df = pd.read_parquet(train_path)\n\n    result = run_grid_search(\n        train_df=train_df,\n        target_col=target_col,\n        model_name=model_name,\n        random_state=seed,\n        cv_folds=cv_folds,\n    )\n\n    best_model = result[\"best_estimator\"]\n    best_params = result[\"best_params\"]\n    best_cv_rmse = result[\"best_cv_rmse\"]\n\n    best_model = fit_final_model(best_model, train_df, target_col)\n\n    joblib.dump(best_model, model.path)\n\n    if best_cv_rmse is not None:\n        metrics.log_metric(\"best_cv_rmse\", float(best_cv_rmse))\n\n    print(f\"Best params: {best_params}\")\n    print(f\"Saved trained model to {model.path}\")\n\n"
           ],
           "image": "europe-west1-docker.pkg.dev/valore-mlsd-project/vertex-ai-pipeline-example/pipeline-base:latest"
         }
@@ -371,6 +424,51 @@
           },
           "taskInfo": {
             "name": "preprocessing-component"
+          }
+        },
+        "promote-model-component": {
+          "cachingOptions": {
+            "enableCache": true
+          },
+          "componentRef": {
+            "name": "comp-promote-model-component"
+          },
+          "dependentTasks": [
+            "evaluation-component",
+            "training-component"
+          ],
+          "inputs": {
+            "artifacts": {
+              "metrics": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "metrics",
+                  "producerTask": "evaluation-component"
+                }
+              },
+              "model": {
+                "taskOutputArtifact": {
+                  "outputArtifactKey": "model",
+                  "producerTask": "training-component"
+                }
+              }
+            },
+            "parameters": {
+              "gcs_bucket": {
+                "componentInputParameter": "gcs_bucket"
+              },
+              "model_display_name": {
+                "componentInputParameter": "model_display_name"
+              },
+              "project_id": {
+                "componentInputParameter": "bq_project"
+              },
+              "region": {
+                "componentInputParameter": "region"
+              }
+            }
+          },
+          "taskInfo": {
+            "name": "promote-model-component"
           }
         },
         "splitting-component": {
@@ -470,8 +568,23 @@
           "isOptional": true,
           "parameterType": "STRING"
         },
+        "gcs_bucket": {
+          "defaultValue": "mlsd-valore-2026-v2",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "model_display_name": {
+          "defaultValue": "valore-xgboost",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
         "model_name": {
           "defaultValue": "xgboost",
+          "isOptional": true,
+          "parameterType": "STRING"
+        },
+        "region": {
+          "defaultValue": "europe-west1",
           "isOptional": true,
           "parameterType": "STRING"
         },

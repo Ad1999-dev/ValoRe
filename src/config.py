@@ -27,6 +27,9 @@ METRICS_FILE = MODELS_DIR / "metrics.json"
 BEST_PARAMS_FILE = MODELS_DIR / "best_params.json"
 BASELINES_FILE = MODELS_DIR / "val_baselines.csv"
 
+# Model Registry
+MODEL_DISPLAY_NAME = os.getenv("MODEL_DISPLAY_NAME", "valore-xgboost")
+
 # API settings
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("API_PORT", "8080"))
