@@ -1,3 +1,5 @@
+from datetime import UTC
+
 from kfp.dsl import Input, Metrics, Model, component
 
 from src.config import VERTEX_BASE_IMAGE
@@ -19,12 +21,12 @@ def promote_model_component(
     The API loads the model by querying the registry for the default version
     of `model_display_name` — no manual path updates needed after each run.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from google.cloud import aiplatform, storage
 
     # ── 1. Copy model to a stable, human-readable GCS path ──────────────────
-    run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+    run_ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     dest_blob = f"models/registry/{run_ts}/model.joblib"
     dest_gcs_dir = f"gs://{gcs_bucket}/models/registry/{run_ts}/"
 

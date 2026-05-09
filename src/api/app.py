@@ -83,7 +83,9 @@ def load_model_from_registry():
         )
 
         if not models:
-            raise ValueError(f"No model named '{model_display_name}' found in registry.")
+            raise ValueError(
+                f"No model named '{model_display_name}' found in registry."
+            )
 
         latest = models[0]
         # artifact_uri is the GCS directory; model.joblib sits inside it.
