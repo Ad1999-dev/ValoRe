@@ -3,29 +3,21 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 import src.api.app as app_module
-
-# Import the app and its global variables
 from src.api.app import PAST_PREDICTIONS, REQUIRED_FEATURES, app
 
 
-# --- DUMMY MODEL FOR TESTING ---
 class DummyPredictionModel:
-    """
-    A fake model that mimics the real one.
-    It helps us test the API without loading a heavy file.
-    """
+    """Fake model that mimics the real one without loading a heavy joblib."""
 
     def predict(self, features):
         # Ensures preprocessing didn't drop or rename columns
         assert list(features.columns) == REQUIRED_FEATURES
-
-        # We return $100k per bedroom so we can verify data is passing through
+        # $100k per bedroom so we can verify data flowed through
         n_bedrooms = features["bedrooms"].iloc[0]
         return [float(n_bedrooms * 100000.0)]
 
 
 def _valid_payload():
-    """Returns a valid house data payload for POST requests."""
     return {
         "data": {
             "id": "house-123",
@@ -52,34 +44,26 @@ def _valid_payload():
     }
 
 
-# --- TESTS ---
-
-
 def test_predict_success():
-    """Test that a valid request returns the correct price and saves it."""
-
-    with patch("src.api.app.load_model_from_gcs", return_value=DummyPredictionModel()):
+    with patch(
+        "src.api.app.load_model_from_registry",
+        return_value=DummyPredictionModel(),
+    ):
         with TestClient(app) as client:
-            # Setup the specific state for this test
             app_module.model = DummyPredictionModel()
             PAST_PREDICTIONS.clear()
 
             response = client.post("/predict", json=_valid_payload())
 
-            # 3 bedrooms * 100,000 = 300,000.0
-            expected_price = 300000.0
-
+            expected_price = 300000.0  # 3 bedrooms * 100,000
             assert response.status_code == 200
             assert response.json()["prediction"] == expected_price
             assert PAST_PREDICTIONS["house-123"]["prediction"] == expected_price
 
 
 def test_predict_error_no_model():
-    """Tests that the API handles a missing model."""
-
-    with patch("src.api.app.load_model_from_gcs", return_value=None):
+    with patch("src.api.app.load_model_from_registry", return_value=None):
         with TestClient(app) as client:
-            # Force the model to None to simulate a load failure
             app_module.model = None
 
             response = client.post("/predict", json=_valid_payload())
@@ -89,9 +73,10 @@ def test_predict_error_no_model():
 
 
 def test_health_endpoint():
-    """Verifies the health check is 'healthy' when the dummy model is active."""
-
-    with patch("src.api.app.load_model_from_gcs", return_value=DummyPredictionModel()):
+    with patch(
+        "src.api.app.load_model_from_registry",
+        return_value=DummyPredictionModel(),
+    ):
         with TestClient(app) as client:
             app_module.model = DummyPredictionModel()
 
@@ -103,9 +88,10 @@ def test_health_endpoint():
 
 
 def test_get_past_predictions():
-    """Verifies we can retrieve stored history from the dictionary."""
-
-    with patch("src.api.app.load_model_from_gcs", return_value=DummyPredictionModel()):
+    with patch(
+        "src.api.app.load_model_from_registry",
+        return_value=DummyPredictionModel(),
+    ):
         with TestClient(app) as client:
             PAST_PREDICTIONS.clear()
             PAST_PREDICTIONS["test-id"] = {
