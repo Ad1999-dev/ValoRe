@@ -211,7 +211,7 @@
       }
     }
   },
-  "defaultPipelineRoot": "gs://mlsd-valore-2026-v2/pipeline_root_valore/",
+  "defaultPipelineRoot": "gs://mlsd-valore-2026-0001/pipeline_root_valore/",
   "deploymentSpec": {
     "executors": {
       "exec-data-ingestion": {
@@ -569,7 +569,7 @@
           "parameterType": "STRING"
         },
         "gcs_bucket": {
-          "defaultValue": "mlsd-valore-2026-v2",
+          "defaultValue": "mlsd-valore-2026-0001",
           "isOptional": true,
           "parameterType": "STRING"
         },
