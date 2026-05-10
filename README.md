@@ -70,7 +70,11 @@ ValoRe
 │   ├── vertex/             # Vertex AI custom pipeline components
 │   └── config.py           # Centralized project configuration
 ├── templates/              # HTML/UI templates for the API
+<<<<<<< HEAD
 ├── tests/                  # Pytest suite for unit and integration tests and load testing using locust
+=======
+├── tests/                  # Pytest suite for unit and integration tests
+>>>>>>> 73706a10fe87842022aaf4f39afb01242e783aa2
 │
 # --- Configuration & Environment ---
 ├── Dockerfile              # Standard container definition
