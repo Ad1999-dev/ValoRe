@@ -4,7 +4,7 @@ from utils.data import load_housing
 
 st.set_page_config(page_title="Explore Market · ValoRe", layout="wide")
 
-st.title("Explore Market")
+st.title("🗺️ Explore Market")
 st.caption("King County housing market - loaded live from BigQuery.")
 
 # Load dataset

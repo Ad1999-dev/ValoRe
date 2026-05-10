@@ -5,13 +5,13 @@ from utils.data import load_housing
 st.set_page_config(page_title="ValoRe", layout="wide")
 
 # THeader + intro
-st.title("ValoRe — House Price Intelligence")
+st.title("🏠 ValoRe — House Price Intelligence")
 st.caption("Real-time prediction platform for King County, WA · ULiège INFO9023")
 
 st.markdown(
     "**ValoRe** is an MLOps platform built for INFO9023. It serves an XGBoost model "
-    "trained on **21,613 King County house sales (May 2014 – May 2015)** and exposes it "
-    "through a Cloud Run API. Use the sidebar to estimate prices, explore the market, "
+    "trained on **21,613 King County house sales (May 2014 – May 2015)**, from Kaggle Housing Price Dataset (https://www.kaggle.com/datasets/sukhmandeepsinghbrar/housing-price-dataset/data), and exposes it "
+    "through a Cloud Run fastAPI. Use the sidebar below to estimate prices, explore the market, "
     "and inspect the model."
 )
 

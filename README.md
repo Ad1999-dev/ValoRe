@@ -38,9 +38,9 @@ Implemented / expected in Milestone 2:
 - pushed a dedicated Vertex base image to **Artifact Registry**
 
 ### 2.3. Milestone 3 (Sprint 5–6)
-(TBD)
 
-
+The **dashboard/** directory contains the Streamlit frontend for ValoRe, designed for dynamic cloud-based data access rather than static local files. We follow an online (real-time) serving approach: the dashboard sends live requests to the deployed prediction fastAPI for price estimation, while also reading market and model-monitoring data from cloud services (BigQuery, GCS, and Vertex AI Model Registry).
+This architecture matches the project requirement that deployed applications must consume cloud data dynamically and demonstrates a complete MLOps serving workflow from user input to cloud model inference and visualization.
 
 ## 3. Dataset
 - Dataset: `Housing.csv` (Kaggle)

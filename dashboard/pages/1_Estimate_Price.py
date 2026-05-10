@@ -8,7 +8,7 @@ from utils.data import load_housing
 
 st.set_page_config(page_title="Estimate Price · ValoRe", layout="wide")
 
-st.title("Estimate Price")
+st.title("💰 Estimate Price")
 st.caption(
     "Fill in the house details and get a live prediction from the deployed model."
 )

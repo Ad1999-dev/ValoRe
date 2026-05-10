@@ -9,7 +9,7 @@ from utils.registry import list_model_versions
 
 st.set_page_config(page_title="Model Insights · ValoRe", layout="wide")
 
-st.title("Model Insights")
+st.title("📊 Model Insights")
 st.caption("How ValoRe's model evolved as more training data arrived.")
 
 # Load registry
