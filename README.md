@@ -56,21 +56,30 @@ The dataset is stored and used **online** via:
 
 ```bash
 ValoRe
-├── src/                              # source code
-│   ├── config.py                     # project configuration
-│   ├── api/                          # API serving layer
-│   ├── cloud/                        # cloud helper functions
-│   ├── modeling/                     # local training code
-│   ├── scripts/                      # utility scripts
-│   └── vertex/                       # Vertex AI pipeline code
-├── template/                         # template files for API
-├── tests/                            # pytest tests
-├── models/                           # saved local model artifacts and metrics
-├── docs/                             # project documentation
-├── notebooks/                        # notebooks used during exploration and experimentation
-│   ├── eda.ipynb                     # exploratory data analysis
-│   └── experimentation.ipynb         # model comparison notebook used to choose the serving model family
-└── slides/                           # milestone slides
+├── .github/workflows/      # CI/CD pipelines (uv + Docker integration)
+├── dashboard/              # Streamlit visualization interface
+├── docs/                   # Project documentation & ML Canvas
+├── models/                 # Saved local model artifacts and metrics
+├── notebooks/              # Exploration, EDA, and experimentation
+├── slides/                 # Milestone and presentation decks
+├── src/                    # Core source code
+│   ├── api/                # API serving layer (FastAPI/Flask)
+│   ├── cloud/              # Cloud infrastructure helper functions
+│   ├── modeling/           # Training logic and pipeline definitions
+│   ├── scripts/            # Utility and standalone execution scripts
+│   ├── vertex/             # Vertex AI custom pipeline components
+│   └── config.py           # Centralized project configuration
+├── templates/              # HTML/UI templates for the API
+├── tests/                  # Pytest suite for unit and integration tests
+│
+# --- Configuration & Environment ---
+├── Dockerfile              # Standard container definition
+├── Dockerfile.vertex       # Specialized container for Vertex AI jobs
+├── pyproject.toml          # Project metadata and uv dependencies
+├── uv.lock                 # Pinning file for deterministic uv installs
+├── ruff.toml               # Linting and formatting rules
+├── .pre-commit-config.yaml # Automated code quality hooks
+└── .python-version         # Targeted Python version for the environment
 ```
 
 
