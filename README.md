@@ -40,7 +40,7 @@ Implemented / expected in Milestone 2:
 ### 2.3. Milestone 3 (Sprint 5–6)
 
 The **dashboard/** directory contains the Streamlit frontend for ValoRe, designed for dynamic cloud-based data access rather than static local files. We follow an online (real-time) serving approach: the dashboard sends live requests to the deployed prediction fastAPI for price estimation, while also reading market and model-monitoring data from cloud services (BigQuery, GCS, and Vertex AI Model Registry).
-This architecture matches the project requirement that deployed applications must consume cloud data dynamically and demonstrates a complete MLOps serving workflow from user input to cloud model inference and visualization.
+This architecture matches the project requirement that deployed applications must consume cloud data dynamically and demonstrates a complete MLOps serving workflow from user input to cloud model inference and visualization. To consider the amount of concurrent users during the final demo presentation, we set the following parameters on google cloud : limited to 10 concurrent users per container to prevent memory exhaustion and laggy sessions. Horizontal scaling is configured with up to 20 max-instances to support peak loads. Performance tuning includes the allocation of 2 vCPU and 2Gi RAM with no-cpu-throttling to ensure high responsiveness during real-time cloud data fetches. Finally, these requirements were tested using locust (see test/loading).
 
 ## 3. Dataset
 - Dataset: `Housing.csv` (Kaggle)
@@ -56,21 +56,30 @@ The dataset is stored and used **online** via:
 
 ```bash
 ValoRe
-├── src/                              # source code
-│   ├── config.py                     # project configuration
-│   ├── api/                          # API serving layer
-│   ├── cloud/                        # cloud helper functions
-│   ├── modeling/                     # local training code
-│   ├── scripts/                      # utility scripts
-│   └── vertex/                       # Vertex AI pipeline code
-├── template/                         # template files for API
-├── tests/                            # pytest tests
-├── models/                           # saved local model artifacts and metrics
-├── docs/                             # project documentation
-├── notebooks/                        # notebooks used during exploration and experimentation
-│   ├── eda.ipynb                     # exploratory data analysis
-│   └── experimentation.ipynb         # model comparison notebook used to choose the serving model family
-└── slides/                           # milestone slides
+├── .github/workflows/      # CI/CD pipelines (uv + Docker integration)
+├── dashboard/              # Streamlit visualization interface
+├── docs/                   # Project documentation & ML Canvas
+├── models/                 # Saved local model artifacts and metrics
+├── notebooks/              # Exploration, EDA, and experimentation
+├── slides/                 # Milestone and presentation decks
+├── src/                    # Core source code
+│   ├── api/                # API serving layer (FastAPI/Flask)
+│   ├── cloud/              # Cloud infrastructure helper functions
+│   ├── modeling/           # Training logic and pipeline definitions
+│   ├── scripts/            # Utility and standalone execution scripts
+│   ├── vertex/             # Vertex AI custom pipeline components
+│   └── config.py           # Centralized project configuration
+├── templates/              # HTML/UI templates for the API
+├── tests/                  # Pytest suite for unit and integration tests and load testing using locust
+│
+# --- Configuration & Environment ---
+├── Dockerfile              # Standard container definition
+├── Dockerfile.vertex       # Specialized container for Vertex AI jobs
+├── pyproject.toml          # Project metadata and uv dependencies
+├── uv.lock                 # Pinning file for deterministic uv installs
+├── ruff.toml               # Linting and formatting rules
+├── .pre-commit-config.yaml # Automated code quality hooks
+└── .python-version         # Targeted Python version for the environment
 ```
 
 
